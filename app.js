@@ -13,11 +13,10 @@ const app = express();
 app.set('view engine','ejs');
 app.set('views','views');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Use your MongoDB Atlas URL
-const DB_PATH =
-"mongodb+srv://priyanshukumar:Root@airbnb.rhzqwpw.mongodb.net/stayease?appName=Airbnb";
+const DB_PATH = process.env.MONGO_URI;
 
 // Fix DNS issue for MongoDB Atlas
 if (DB_PATH.startsWith("mongodb+srv://")) {
@@ -71,7 +70,8 @@ const multerOptions = {
 
 }
 
-app.use(express.urlencoded());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(multer(multerOptions).single('photo')) // 'photo' is the name of the file input field in the form
 app.use(express.static(path.join(rootDir,'public')))
 app.use('/uploads', express.static(path.join(rootDir, 'uploads'))); // Serve uploaded files statically
@@ -80,10 +80,13 @@ app.use('/homes/uploads', express.static(path.join(rootDir, 'uploads'))); // Thi
 
 
 app.use(session({
-    secret: "DSA is fun.",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: store,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }))
 
 app.use(flash());
