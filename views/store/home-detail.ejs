@@ -1,0 +1,130 @@
+<%- include('../partials/head') %>
+
+<!-- Leaflet (FREE map) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+</head>
+
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+  <%- include('../partials/nav') %>
+
+  <main class="flex flex-1 items-center justify-center px-4 py-10">
+    <div class="w-full max-w-4xl">
+      
+      <!-- Title -->
+      <h2 class="text-4xl font-extrabold text-center mb-8 text-gray-900">
+        <%= home.homeName %>
+      </h2>
+
+      <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden grid md:grid-cols-2 border border-gray-200">
+
+        <!-- LEFT: Image / Map -->
+        <div class="h-64 md:h-full flex flex-col">
+          
+          <!-- Tabs -->
+          <div class="flex gap-2 p-2 bg-gray-100">
+            <button onclick="showImage()" id="imageBtn"
+              class="px-4 py-2 bg-blue-600 text-white rounded font-semibold shadow">
+              Image
+            </button>
+
+            <button onclick="showMap()" id="mapBtn"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 transition">
+              Map
+            </button>
+          </div>
+
+          <!-- Image -->
+          <div id="imageSection" class="flex-1 overflow-hidden">
+            <img 
+              src="<%= home.photo || 'https://via.placeholder.com/400x300' %>" 
+              class="w-full h-full object-cover hover:scale-105 transition duration-300"
+            />
+          </div>
+
+          <!-- Map -->
+          <div id="mapSection" class="flex-1 overflow-hidden hidden">
+            <div id="map" class="w-full h-full"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Content -->
+        <div class="p-6 flex flex-col justify-between">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">
+              <%= home.homeName %>
+            </h2>
+
+            <p class="text-gray-600 text-sm mb-2">
+              📍 <%= home.address %>
+            </p>
+
+            <p class="text-yellow-500 font-semibold text-sm mb-2">
+              ⭐ <%= home.rating %> / 5
+            </p>
+
+            <p class="text-2xl font-bold text-gray-900 mb-4">
+              ₹<%= home.price %> 
+              <span class="text-gray-500 text-sm font-normal">/ night</span>
+            </p>
+
+            <p class="text-gray-600 text-sm">
+              <%= home.description %>
+            </p>
+          </div>
+
+          <div class="mt-4">
+            <%- include('../partials/favourite') %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const lat = <%= home.location?.coordinates?.[1] || 28.6139 %>;
+    const lng = <%= home.location?.coordinates?.[0] || 77.2090 %>;
+
+    let map;
+
+    function showImage() {
+      document.getElementById('imageSection').classList.remove('hidden');
+      document.getElementById('mapSection').classList.add('hidden');
+
+      document.getElementById('imageBtn').className =
+        "px-4 py-2 bg-blue-600 text-white rounded font-semibold shadow";
+
+      document.getElementById('mapBtn').className =
+        "px-4 py-2 bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 transition";
+    }
+
+    function showMap() {
+      document.getElementById('imageSection').classList.add('hidden');
+      document.getElementById('mapSection').classList.remove('hidden');
+
+      document.getElementById('mapBtn').className =
+        "px-4 py-2 bg-blue-600 text-white rounded font-semibold shadow";
+
+      document.getElementById('imageBtn').className =
+        "px-4 py-2 bg-gray-200 text-gray-700 rounded font-semibold hover:bg-gray-300 transition";
+
+      if (!map) {
+        map = L.map('map').setView([lat, lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup("<b><%= home.homeName %></b><br>₹<%= home.price %>/night")
+          .openPopup();
+      } else {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+    }
+  </script>
+
+</body>
+</html>

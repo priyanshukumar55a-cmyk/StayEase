@@ -1,0 +1,72 @@
+<%- include('../partials/head') %>
+</head>
+<body class="bg-white font-sans">
+    <%- include('../partials/nav') %>
+
+    <!-- Hero Section -->
+    <main class="max-w-6xl mx-auto px-4 py-10">
+        <h2 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent text-center mb-2">
+            Discover Your Perfect Escape
+        </h2>
+        <p class="text-center text-slate-700 text-lg mb-8 font-medium">Find luxury homes and unique stays in your favorite destinations</p>
+        <div class="max-w-6xl mx-auto mt-10 px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+
+        <% registeredHomes.forEach(home => { %>
+            
+            <div class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition duration-300 overflow-hidden border border-gray-200 hover:-translate-y-1">
+                
+                <!-- Image -->
+                <div class="overflow-hidden">
+                    <img 
+                        src="<%= home.photo || 'https://via.placeholder.com/400x300?text=No+Image' %>" 
+                        alt="<%= home.homeName %>"
+                        class="w-full h-48 object-cover hover:scale-105 transition duration-300"
+                    />
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                    
+                    <!-- House Name -->
+                    <h2 class="text-lg font-bold text-earth-800 mb-1 truncate">
+                        <%= home.homeName %>
+                    </h2>
+
+                    <!-- Location -->
+                    <p class="text-earth-700 text-sm mb-2">
+                        📍 <%= home.address || 'Location not available' %>
+                    </p>
+
+                    <!-- Rating -->
+                    <p class="text-amber-500 text-sm font-bold mb-2">
+                        ⭐ <%= home.rating %> / 5
+                    </p>
+
+                    <!-- Price -->
+                    <p class="text-emerald-600 font-bold text-lg mb-4">
+                        ₹<%= home.price %> 
+                        <span class="text-slate-600 text-sm font-normal">/ night</span>
+                    </p>
+
+                    <!-- Button -->
+                    <button 
+                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg">
+                        View Details
+                    </button>
+
+                    <!--Booking-->
+                    <button 
+                        class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 mt-2 shadow-md">
+                        Book Now
+                    </button>
+
+                </div>
+            </div>
+
+        <% }) %>
+
+    </div>
+    </main>
+
+</body>
+</html>
