@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/user");
 const crypto = require("crypto");
 const transporter = require("../utils/mailer");
+const sendVerificationEmail = require("../utils/mailer");
 const BASE_URL = process.env.BASE_URL;
 
 
