@@ -199,9 +199,6 @@ exports.postLogout = (req, res, next) => {
 }
 
 exports.getVerifyEmail = async (req, res, next) => {
-    console.log("VERIFY ROUTE HIT");
-    console.log("Token:", req.query.token);
-
     const hashedToken = crypto.createHash("sha256").update(req.query.token).digest("hex");
 
     const user = await User.findOne({
