@@ -1,10 +1,11 @@
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+
 require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require('express-session')
-const dns = require("dns");
-require('dns').setDefaultResultOrder('ipv4first');
 const MongoDBStore = require('connect-mongodb-session')(session)
 const nodemailer = require("nodemailer");
 const flash = require("connect-flash");

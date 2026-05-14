@@ -6,7 +6,7 @@ if (!process.env.EMAIL || !process.env.EMAIL_PASS) {
 }
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: "142.250.183.108",
     port: 587,
     secure: false,
     family: 4,
