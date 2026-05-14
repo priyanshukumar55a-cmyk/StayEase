@@ -6,11 +6,17 @@ const transporter = require("../utils/mailer");
 const BASE_URL = process.env.BASE_URL;
 
 exports.getLogin = (req, res, next) => {
-    res.render('auth/login', {pageTitle: 'Login', currentPage: 'login', errors: [], oldInput: { email: '' }, user: {},
+    res.render('auth/login', {
+        pageTitle: 'Login',
+        currentPage: 'login',
+        errors: [],
+        oldInput: { email: '' }
     });
 }
 exports.getSignup = (req, res, next) => {
-    res.render('auth/signup', {pageTitle: 'SignUp', currentPage: 'signup',
+    res.render('auth/signup', {
+        pageTitle: 'SignUp', 
+        currentPage: 'signup',
         errors: [],
         oldInput: { firstName: '', lastName: '', email: '', userType: '', user: {}, }
     });
@@ -60,7 +66,17 @@ exports.postSignup = [
 
 
     async (req, res, next) => {  
-        const { firstName, lastName, email, password, userType } = req.body;
+        const { firstName, lastName, email, password, confirmPassword, userType, terms } = req.body;
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).render('auth/signup', {
+                pageTitle: 'SignUp',
+                currentPage: 'signup',
+                errors: errors.array().map(err => err.msg),
+                oldInput: { firstName, lastName, email, userType }
+            });
+        }
 
         try {
             const existingUser = await User.findOne({ email });
@@ -75,7 +91,8 @@ exports.postSignup = [
             }
 
             const hashedPassword = await bcrypt.hash(password, 12);
-            const token = crypto.randomBytes(32).toString("hex");
+            const rawToken = crypto.randomBytes(32).toString("hex");
+            const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
 
             const user = new User({
                 firstName,
@@ -83,7 +100,7 @@ exports.postSignup = [
                 email,
                 password: hashedPassword,
                 userType,
-                verificationToken: token,
+                verificationToken: hashedToken,
                 tokenExpiry: Date.now() + 3600000
             });
 
@@ -92,11 +109,13 @@ exports.postSignup = [
             // FLASH MESSAGE
             req.flash("success", "Check your email for verification");
 
+            const verifyUrl = `${BASE_URL}/verify-email?token=${rawToken}`;
+
             await transporter.sendMail({
                 to: email,
                 subject: "Verify your email for stayEase",
                 html: `
-                    <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; margin-top:40px; border-radius:10px; padding:30px;"> <!-- Logo / Brand --> <tr> <td align="center" style="font-size:24px; font-weight:bold; color:#ff385c;"> StayEase </td> </tr> <!-- Heading --> <tr> <td style="padding-top:20px; font-size:20px; font-weight:bold; color:#333;"> Confirm your email address </td> </tr> <!-- Message --> <tr> <td style="padding-top:10px; color:#555; font-size:14px; line-height:1.6;"> Welcome to StayEase! 🎉 <br><br> Please confirm your email address to start exploring homes and bookings. </td> </tr> <!-- Button --> <tr> <td align="center" style="padding:30px 0;"> <a href="${BASE_URL}/verify-email?token=${token}" style="background:#ff385c; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold;"> Verify Email </a> </td> </tr> <!-- Fallback --> <tr> <td style="font-size:12px; color:#888; word-break:break-all;"> If the button doesn’t work, copy and paste this link into your browser:<br> http://localhost:3000/verify-email?token=${token} </td> </tr> <!-- Footer --> <tr> <td style="padding-top:20px; font-size:12px; color:#aaa; text-align:center;"> If you didn’t create an account, you can safely ignore this email. </td> </tr> </table> </td> </tr>
+                    <table width="500" cellpadding="0" cellspacing="0" style="background:#ffffff; margin-top:40px; border-radius:10px; padding:30px;"> <!-- Logo / Brand --> <tr> <td align="center" style="font-size:24px; font-weight:bold; color:#ff385c;"> StayEase </td> </tr> <!-- Heading --> <tr> <td style="padding-top:20px; font-size:20px; font-weight:bold; color:#333;"> Confirm your email address </td> </tr> <!-- Message --> <tr> <td style="padding-top:10px; color:#555; font-size:14px; line-height:1.6;"> Welcome to StayEase! 🎉 <br><br> Please confirm your email address to start exploring homes and bookings. </td> </tr> <!-- Button --> <tr> <td align="center" style="padding:30px 0;"> <a href="${verifyUrl}" style="background:#ff385c; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold;"> Verify Email </a> </td> </tr> <!-- Fallback --> <tr> <td style="font-size:12px; color:#888; word-break:break-all;"> If the button doesn’t work, copy and paste this link into your browser:<br> ${verifyUrl} </td> </tr> <!-- Footer --> <tr> <td style="padding-top:20px; font-size:12px; color:#aaa; text-align:center;"> If you didn’t create an account, you can safely ignore this email. </td> </tr> </table> </td> </tr>
                 `
             });
 
@@ -108,7 +127,7 @@ exports.postSignup = [
                 pageTitle: 'SignUp',
                 currentPage: 'signup',
                 errors: [err.message],
-                oldInput: { firstName, lastName, email, userType, password, confirmPassword, terms },
+                oldInput: { firstName, lastName, email, userType, terms },
             });
         }
     }
@@ -121,7 +140,7 @@ exports.postLogin = async (req, res, next) => {
         return res.status(422).render('auth/login', {
             pageTitle: 'Login',
             currentPage: 'login',
-                errors: ["User not found."],
+                errors: ["Invalid email or password."],
                 oldInput: { email },
             });
         }
@@ -140,17 +159,17 @@ exports.postLogin = async (req, res, next) => {
         return res.status(422).render('auth/login', {
             pageTitle: 'Login',
             currentPage: 'login',
-            errors: ["Invalid password."],
+            errors: ["Invalid email or password."],
             oldInput: { email },
         });
     }
 
-    req.session.isLoggedIn = true;
     req.session.user = {
         _id: user._id.toString(),
         email: user.email,
         userType: user.userType
     };
+    req.session.isLoggedIn = !!req.session.user;
 
     req.session.save(err => {
         if (err) {
@@ -171,8 +190,12 @@ exports.getVerifyEmail = async (req, res, next) => {
     console.log("VERIFY ROUTE HIT");
     console.log("Token:", req.query.token);
 
-    const token = req.query.token;
-    const user = await User.findOne({ verificationToken: token, tokenExpiry: { $gt: Date.now() } });
+    const hashedToken = crypto.createHash("sha256").update(req.query.token).digest("hex");
+
+    const user = await User.findOne({
+        verificationToken: hashedToken,
+        tokenExpiry: { $gt: Date.now() }
+    });
 
     if (!user) {
         return res.status(400).send("Invalid or expired token.");
