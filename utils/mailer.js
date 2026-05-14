@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendVerificationEmail = async (to, verifyUrl) => {
     await resend.emails.send({
-        from: "onboarding@resend.dev",
+        from: process.env.EMAIL,
         to,
         subject: "Verify your email for StayEase",
         html: `
