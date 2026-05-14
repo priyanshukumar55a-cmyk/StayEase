@@ -12,7 +12,9 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    logger: true,
+    debud: true
 });
 
 if (process.env.NODE_ENV !== "production") {
