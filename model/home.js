@@ -1,50 +1,55 @@
-// Database
 const { default: mongoose } = require("mongoose");
-
-/*
-
-    save()
-    find()
-    findById(homeId)
-    deleteById(homeId)
-*/
 
 const homeSchema = mongoose.Schema({
     homeName: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
+
     price: {
         type: Number,
         required: true
     },
+
     address: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
+
     location: {
         type: {
             type: String,
             enum: ["Point"],
             default: "Point"
         },
+
         coordinates: {
-            type: [Number], // [lng, lat]
+            type: [Number], // [longitude, latitude]
             required: true
         }
-        },
+    },
+
     rating: {
         type: Number,
+        default: 0
+    },
+
+    photo: {
+        type: String,
         required: true
     },
-    photo: String,
-    description: String,
+
+    description: {
+        type: String,
+        trim: true
+    }
+
+}, {
+    timestamps: true
 });
 
-// homeSchema.pre('findOneAndDelete', async function(next) {
-//     const homeId = this.getQuery()._id;
-//     await Favourite.deleteMany({homeId: homeId});
-//     next();
-// })
+homeSchema.index({ location: "2dsphere" });
 
-module.exports = mongoose.model('Home', homeSchema);
+module.exports = mongoose.model("Home", homeSchema);

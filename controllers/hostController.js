@@ -1,6 +1,4 @@
 const Home = require('../model/home')
-const path = require('path');
-const fs = require('fs');
 const getCoordinates = require('../utils/geocode');
 
 exports.getAddHome = (req, res, next) => {
@@ -30,7 +28,7 @@ exports.postAddHome = async (req, res, next) => {
         return res.redirect('/host/add-home');
     }
 
-    if (!homeName || !price || !address || !rating || !description) {
+    if (!homeName?.trim() || !price || !address?.trim() || !description?.trim()) {
         console.log("Missing required fields");
         return res.redirect('/host/add-home');
     }
@@ -58,7 +56,7 @@ exports.postAddHome = async (req, res, next) => {
 
     home.save().then(() => {
         console.log('Home saved successfully');
-        res.redirect('host-home-list');
+        res.redirect('host/host-home-list');
     }).catch(err => {
         console.log('Error saving home: ', err);
         res.redirect('/host/add-home');
@@ -113,23 +111,11 @@ exports.postEditHome = async (req, res, next) => {
             coordinates: [coords.lng, coords.lat]
         };
         
-        if(req.file){
-            fs.unlink(home.photo, (err) => {
-                if(err){
-                    console.log("Error while deleting old photo ", err);
-                }
-                else{
-                    console.log("Old photo deleted successfully");
-                }
-            })
-            home.photo = req.file.path;
-        }
-        
         home.description = description;
         
         await home.save();
         console.log('Home updated successfully');
-        res.redirect('host-home-list');
+        res.redirect('host/host-home-list');
         
     } catch (err) {
         console.log("Error while updating home: ", err);
@@ -146,16 +132,6 @@ exports.postDeleteHome = async (req, res, next) => {
         if (!home) {
             console.log("Home not found");
             return res.redirect("/host/host-home-list");
-        }
-
-        // ✅ delete image using DB path (NOT req.file)
-        if (home.photo) {
-            const filePath = path.join(__dirname, '..', home.photo);
-
-            fs.unlink(filePath, (err) => {
-                if (err) console.log("Error deleting file:", err);
-                else console.log("Photo deleted successfully");
-            });
         }
 
         await Home.findByIdAndDelete(homeId);
