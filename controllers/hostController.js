@@ -2,7 +2,7 @@ const Home = require('../model/home')
 const getCoordinates = require('../utils/geocode');
 
 exports.getAddHome = (req, res, next) => {
-    res.render('/host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
+    res.render('host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
     isLoggedIn: req.session.isLoggedIn,
     user: req.session.user || {}
     });
@@ -10,7 +10,7 @@ exports.getAddHome = (req, res, next) => {
 
 exports.getHostHomes = (req, res, next) => {
         Home.find().then(registeredHomes => 
-            res.render('/host/host-home-list',{
+            res.render('host/host-home-list',{
             registeredHomes: registeredHomes, 
             pageTitle: 'Host Homes List', 
             currentPage: 'host-homes',
@@ -96,7 +96,7 @@ exports.getEditHome = (req, res, next) => {
             return res.redirect("/host/host-home-list")
         }
         console.log(homeId, editing, home);
-        res.render('/host/edit-home', {
+        res.render('host/edit-home', {
             home: home,
             pageTitle: 'Edit your Home', 
             currentPage: 'host-homes',
