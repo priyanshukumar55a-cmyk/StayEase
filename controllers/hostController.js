@@ -38,7 +38,13 @@ exports.postAddHome = async (req, res, next) => {
             return res.redirect('/host/add-home');
         }
 
-        const photo = req.file.path;
+        // multer-storage-cloudinary can return different url props depending on version
+        const photo = req.file.path || req.file.secure_url || req.file.url || null;
+
+        if (!photo) {
+            console.log('Uploaded file did not return a URL from Cloudinary');
+            return res.redirect('/host/add-home');
+        }
 
         console.log("PHOTO URL:", photo);
 
@@ -129,6 +135,16 @@ exports.postEditHome = async (req, res, next) => {
         };
         
         home.description = description;
+
+        // If a new photo was uploaded during edit, update the photo URL
+        if (req.file) {
+            const newPhotoUrl = req.file.path || req.file.secure_url || req.file.url || null;
+            if (newPhotoUrl) {
+                home.photo = newPhotoUrl;
+            } else {
+                console.log('Edit: uploaded file did not return a Cloudinary URL');
+            }
+        }
         
         await home.save();
         console.log('Home updated successfully');
