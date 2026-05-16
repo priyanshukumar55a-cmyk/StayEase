@@ -2,7 +2,7 @@ const Home = require('../model/home')
 const getCoordinates = require('../utils/geocode');
 
 exports.getAddHome = (req, res, next) => {
-    res.render('host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
+    res.render('/host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
     isLoggedIn: req.session.isLoggedIn,
     user: req.session.user || {}
     });
@@ -10,7 +10,7 @@ exports.getAddHome = (req, res, next) => {
 
 exports.getHostHomes = (req, res, next) => {
         Home.find().then(registeredHomes => 
-            res.render('host/host-home-list',{
+            res.render('/host/host-home-list',{
             registeredHomes: registeredHomes, 
             pageTitle: 'Host Homes List', 
             currentPage: 'host-homes',
@@ -93,10 +93,10 @@ exports.getEditHome = (req, res, next) => {
     Home.findById(homeId).then(home => {
         if(!home){
             console.log("Home not found for editing")
-            return res.redirect("host/host-home-list")
+            return res.redirect("/host/host-home-list")
         }
         console.log(homeId, editing, home);
-        res.render('host/edit-home', {
+        res.render('/host/edit-home', {
             home: home,
             pageTitle: 'Edit your Home', 
             currentPage: 'host-homes',
@@ -148,7 +148,7 @@ exports.postEditHome = async (req, res, next) => {
         
         await home.save();
         console.log('Home updated successfully');
-        res.redirect('host/host-home-list');
+        res.redirect('/host/host-home-list');
         
     } catch (err) {
         console.log("Error while updating home: ", err);
