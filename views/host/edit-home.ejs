@@ -19,7 +19,7 @@
                 Create or update your listing and <span class="text-pink-500">start earning!</span>
             </p>
 
-            <form action="/host/<%= editing ? "edit-home" : "add-home" %>" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form action="/host/<%= editing ? 'edit-home' : 'add-home' %>" method="POST" enctype="multipart/form-data" class="space-y-4">
 
                 <input type="hidden" name="id" value="<%= editing ? home._id : '' %>" />
                 

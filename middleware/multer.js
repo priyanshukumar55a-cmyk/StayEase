@@ -1,6 +1,5 @@
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
 const cloudinary = require("../config/cloudinary");
 
 const storage = new CloudinaryStorage({
@@ -10,7 +9,6 @@ const storage = new CloudinaryStorage({
         return {
             folder: "StayEase",
             public_id: `${Date.now()}-${originalName}`,
-            allowed_formats: ["png", "jpg", "jpeg"],
             transformation: [{ quality: "auto", fetch_format: "auto" }],
         };
     },
@@ -18,16 +16,15 @@ const storage = new CloudinaryStorage({
 
 const fileFilter = (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
-        cb(new Error("Only image files are allowed!"), false);
-    } else {
-        cb(null, true);
+        return cb(null, false); // ✅ safe reject
     }
+    cb(null, true);
 };
 
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 module.exports = upload;
