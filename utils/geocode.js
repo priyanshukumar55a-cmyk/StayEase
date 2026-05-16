@@ -1,38 +1,36 @@
-const axios = require("axios");
+const axios = require('axios');
 
 const getCoordinates = async (address) => {
-  try {
-    const res = await axios.get("https://nominatim.openstreetmap.org/search", {
-      params: {
-        q: address,
-        format: "json",
-        limit: 1
-      },
-      headers: {
-        'User-Agent': 'StayEase/1.0 (priyanshukumar55a@gmail.com)'
-      }
-    });
+    try {
+        const token = process.env.LOCATIONIQ_TOKEN;
 
-    if (!res.data || res.data.length === 0) {
-      console.log(`Geocoding failed for "${address}": No results found`);
-      return {
-        lat: 28.6139,
-        lng: 77.2090
-      };
+        const response = await axios.get(
+            'https://us1.locationiq.com/v1/search',
+            {
+                params: {
+                    key: token,
+                    q: address,
+                    format: 'json',
+                    limit: 1
+                }
+            }
+        );
+
+        const data = response.data;
+
+        if (!data || data.length === 0) {
+            throw new Error('No location found');
+        }
+
+        return {
+            lat: parseFloat(data[0].lat),
+            lng: parseFloat(data[0].lon)
+        };
+
+    } catch (err) {
+        console.error("LocationIQ Error:", err.response?.data || err.message);
+        throw new Error("Geocoding failed");
     }
-
-    const location = res.data[0];
-    return {
-      lat: parseFloat(location.lat),
-      lng: parseFloat(location.lon)
-    };
-  } catch (err) {
-    console.error('Geocoding request error:', err.message);
-    return {
-      lat: 28.6139,
-      lng: 77.2090
-    };
-  }
 };
 
 module.exports = getCoordinates;
