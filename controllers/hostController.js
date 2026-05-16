@@ -49,7 +49,14 @@ exports.postAddHome = async (req, res, next) => {
         console.log("PHOTO URL:", photo);
 
         // Convert address to coordinates
-        const coords = await getCoordinates(address);
+        let coords;
+
+        try {
+            coords = await getCoordinates(address);
+        } catch (err) {
+            console.log("Geocoding failed:", err.message);
+            return res.redirect('/host/add-home'); // prevent crash
+        }
 
         console.log("COORDS:", coords);
 
@@ -128,7 +135,14 @@ exports.postEditHome = async (req, res, next) => {
         home.rating = rating;
         
         // Convert address to coordinates
-        const coords = await getCoordinates(address);
+        let coords;
+
+        try {
+            coords = await getCoordinates(address);
+        } catch (err) {
+            console.log("Geocoding failed:", err.message);
+            return res.redirect('/host/add-home'); // prevent crash
+        }
         home.location = {
             type: "Point",
             coordinates: [coords.lng, coords.lat]
