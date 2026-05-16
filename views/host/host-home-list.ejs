@@ -3,18 +3,19 @@
 <body class="bg-white font-sans">
     <%- include('../partials/nav') %>
 
-    <!-- Hero Section -->
     <main class="max-w-6xl mx-auto px-4 py-10">
         <h2 class="text-4xl font-extrabold text-blue-600 text-center mb-2">
             Your Listings
         </h2>
-        <p class="text-center text-earth-800 text-lg mb-8">Manage and update your amazing properties</p>
+        <p class="text-center text-gray-600 text-lg mb-8">
+            Manage and update your amazing properties
+        </p>
 
-        <div class="max-w-6xl mx-auto mt-10 px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
         <% registeredHomes.forEach(home => { %>
             
-            <div class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition duration-300 overflow-hidden border border-gray-200 hover:-translate-y-1">
+            <div class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition duration-300 overflow-hidden border border-gray-200">
                 
                 <!-- Image -->
                 <div class="overflow-hidden">
@@ -30,61 +31,51 @@
                     <div 
                         id="map-<%= home._id %>" 
                         class="w-full h-full"
-                        data-lat="<%= home.location.coordinates[1] %>"
-                        data-lng="<%= home.location.coordinates[0] %>">
+                        data-lat="<%= home.location?.coordinates ? home.location.coordinates[1] : '' %>"
+                        data-lng="<%= home.location?.coordinates ? home.location.coordinates[0] : '' %>">
                     </div>
                 </div>
-                <!-- Tabs -->
-                <button 
-                onclick="toggleMap('<%= home._id %>')" 
-                id="mapBtn-<%= home._id %>"
-                class="px-3 py-1 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">
-                View Map
-                </button>
+
+                <!-- Toggle Button -->
+                <div class="p-2 bg-gray-100">
+                    <button 
+                        onclick="toggleMap('<%= home._id %>')" 
+                        id="mapBtn-<%= home._id %>"
+                        class="px-3 py-1 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition">
+                        View Map
+                    </button>
+                </div>
 
                 <!-- Content -->
                 <div class="p-4">
                     
-                    <!-- House Name -->
-                    <h2 class="text-lg font-bold text-earth-800 mb-1 truncate">
+                    <h2 class="text-lg font-bold text-gray-800 mb-1 truncate">
                         <%= home.homeName %>
                     </h2>
 
-                    <!-- address -->
-                    <p class="text-earth-700 text-sm mb-2">
-                        📍 <%= home.address %>
-                    </p>
-
-                    <!-- location -->
                     <p class="text-gray-600 text-sm mb-2">
-                        <% if (home.location && home.location.coordinates) { %>
-                            🌍 <%= home.location.coordinates.join(', ') %>
-                        <% } else { %>
-                            🌍 Location not available
-                        <% } %>
+                        📍 <%= home.address || "Location not available" %>
                     </p>
 
-                    <!-- Rating -->
-                    <p class="text-primary-700 text-sm font-semibold mb-2">
+                    <p class="text-yellow-500 text-sm font-semibold mb-2">
                         ⭐ <%= home.rating %> / 5
                     </p>
 
-                    <!-- Price -->
-                    <p class="text-earth-900 font-semibold text-lg mb-4">
+                    <p class="text-gray-900 font-semibold text-lg mb-4">
                         ₹<%= home.price %> 
-                        <span class="text-earth-700 text-sm font-normal">/ night</span>
+                        <span class="text-gray-500 text-sm font-normal">/ night</span>
                     </p>
 
-                    <!--Edit Button-->
+                    <!-- Edit -->
                     <a href="/host/edit-home/<%=home._id%>?editing=true"
-                        class="block w-full bg-blue-600 text-white p-2 rounded-lg font-semibold hover:bg-blue-700 hover:shadow-lg transition duration-300 mt-2 text-center">
+                        class="block w-full bg-blue-600 text-white p-2 rounded-lg font-semibold hover:bg-blue-700 transition text-center">
                         Edit
                     </a>
                     
-                    <!--Delete Button-->
+                    <!-- Delete -->
                     <form action="/host/delete-home/<%= home._id %>" method="post">
                         <button type="submit"
-                            class="w-full bg-red-500 text-white p-2 rounded-lg font-semibold hover:bg-red-600 hover:shadow-lg transition duration-300 mt-2">
+                            class="w-full bg-red-500 text-white p-2 rounded-lg font-semibold hover:bg-red-600 transition mt-2">
                             Delete
                         </button>
                     </form>
@@ -93,8 +84,9 @@
 
         <% }) %>
 
-    </div>
+        </div>
     </main>
+
 <script>
 const maps = {};
 const openedMaps = new Set();
@@ -104,40 +96,36 @@ function toggleMap(id) {
     const mapDiv = document.getElementById('map-' + id);
     const btn = document.getElementById('mapBtn-' + id);
 
-    // 👉 CLOSE MAP
+    // CLOSE
     if (openedMaps.has(id)) {
         mapSection.classList.add('hidden');
         openedMaps.delete(id);
-
         btn.innerText = "View Map";
-        btn.className = "px-3 py-1 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition";
         return;
     }
 
-    // 👉 Close all other maps
+    // CLOSE ALL OTHERS
     openedMaps.forEach(openId => {
         document.getElementById('mapSection-' + openId).classList.add('hidden');
-
-        const otherBtn = document.getElementById('mapBtn-' + openId);
-        if (otherBtn) {
-            otherBtn.innerText = "View Map";
-            otherBtn.className = "px-3 py-1 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition";
-        }
+        document.getElementById('mapBtn-' + openId).innerText = "View Map";
     });
-
     openedMaps.clear();
 
-    // 👉 OPEN MAP
+    // OPEN
     mapSection.classList.remove('hidden');
     openedMaps.add(id);
-
     btn.innerText = "Close Map";
-    btn.className = "px-3 py-1 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600 transition";
 
-    // 👉 Initialize map once
+    // INIT MAP
     if (!maps[id]) {
-        const lat = parseFloat(mapDiv.dataset.lat || 28.6139);
-        const lng = parseFloat(mapDiv.dataset.lng || 77.2090);
+        const lat = parseFloat(mapDiv.dataset.lat);
+        const lng = parseFloat(mapDiv.dataset.lng);
+
+        // ❗ SAFE CHECK
+        if (isNaN(lat) || isNaN(lng)) {
+            mapDiv.innerHTML = "<p class='text-center text-red-500 mt-4'>Location not available</p>";
+            return;
+        }
 
         const map = L.map('map-' + id).setView([lat, lng], 13);
 
@@ -147,16 +135,15 @@ function toggleMap(id) {
 
         L.marker([lat, lng])
             .addTo(map)
-            .bindPopup("<b>Location</b>")
+            .bindPopup("📍 Property Location")
             .openPopup();
 
         maps[id] = map;
     } else {
-        setTimeout(() => {
-            maps[id].invalidateSize();
-        }, 100);
+        setTimeout(() => maps[id].invalidateSize(), 200);
     }
 }
 </script>
+
 </body>
 </html>
