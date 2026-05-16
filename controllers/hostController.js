@@ -21,47 +21,64 @@ exports.getHostHomes = (req, res, next) => {
 }
 
 exports.postAddHome = async (req, res, next) => {
-    const {homeName, price, address, rating, description} = req.body;
+    try {
 
-    if(!req.file){
-        console.log("No file uploaded");
-        return res.redirect('/host/add-home');
+        console.log("BODY:", req.body);
+        console.log("FILE:", req.file);
+
+        const { homeName, price, address, rating, description } = req.body;
+
+        if (!req.file) {
+            console.log("No file uploaded");
+            return res.redirect('/host/add-home');
+        }
+
+        if (!homeName?.trim() || !price || !address?.trim() || !description?.trim()) {
+            console.log("Missing required fields");
+            return res.redirect('/host/add-home');
+        }
+
+        const photo = req.file.path;
+
+        console.log("PHOTO URL:", photo);
+
+        // Convert address to coordinates
+        const coords = await getCoordinates(address);
+
+        console.log("COORDS:", coords);
+
+        const home = new Home({
+            homeName,
+            price,
+            address,
+            location: {
+                type: "Point",
+                coordinates: [coords.lng, coords.lat]
+            },
+            rating,
+            photo,
+            description
+        });
+
+        console.log("HOME OBJECT:", home);
+
+        await home.save();
+
+        console.log("Home saved successfully");
+
+        res.redirect('/host/host-home-list');
+
+    } catch (err) {
+
+        console.error("ADD HOME ERROR:");
+        console.error(err);
+        console.error(err.message);
+        console.error(err.stack);
+
+        res.status(500).send("Something went wrong");
+
     }
-
-    if (!homeName?.trim() || !price || !address?.trim() || !description?.trim()) {
-        console.log("Missing required fields");
-        return res.redirect('/host/add-home');
-    }
-
-    console.log(req.file);
-
-    const photo = req.file.path;
-    
-    // Convert address to coordinates
-    const coords = await getCoordinates(address);
-    const home = new Home({
-        homeName, 
-        price, 
-        address,
-        location: {
-            type: "Point",
-            coordinates: [coords.lng, coords.lat]
-        }, 
-        rating, 
-        photo, 
-        description
-    });
-
-    console.log('Home object created:', home);
-
-    home.save().then(() => {
-        console.log('Home saved successfully');
-        res.redirect('host/host-home-list');
-    }).catch(err => {
-        console.log('Error saving home: ', err);
-        res.redirect('/host/add-home');
-    });
-}
+};
 
 exports.getEditHome = (req, res, next) => {
     const homeId = req.params.homeId;
