@@ -106,22 +106,15 @@ exports.postSignup = [
                 tokenExpiry: Date.now() + 3600000
             });
 
-            if(userType === "host"){
-                const host = new Host({
-                    user: user._id,
-                    homes: []
-                });
-                await host.save();
+            let host = null;
+            if (userType === "host") {
+                host = new Host({ user: user._id, homes: [] });
             }
-
-            await user.save();
-
-            // FLASH MESSAGE
-            req.flash("success", "Check your email for verification");
 
             const verifyUrl = `${BASE_URL}/verify-email?token=${rawToken}`;
 
             try {
+                // Try to send verification email before persisting to DB.
                 await transporter.sendMail({
                     from: process.env.EMAIL,
                     to: email,
@@ -131,7 +124,6 @@ exports.postSignup = [
                     `
                 });
             } catch (mailError) {
-                await User.deleteOne({ _id: user._id });
                 console.error("Failed to send verification email:", mailError);
                 return res.status(500).render('auth/signup', {
                     pageTitle: 'SignUp',
@@ -141,6 +133,12 @@ exports.postSignup = [
                 });
             }
 
+            // Email sent OK — now persist user (and host if any).
+            await user.save();
+            if(host) await host.save();
+
+            // FLASH MESSAGE
+            req.flash("success", "Check your email for verification");
             res.redirect('/login');
 
         } 
