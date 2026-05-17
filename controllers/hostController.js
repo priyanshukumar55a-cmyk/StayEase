@@ -1,4 +1,6 @@
 const Home = require('../model/home')
+const User = require('../model/user')
+const Host = require('../model/host')
 const getCoordinates = require('../utils/geocode');
 
 exports.getAddHome = (req, res, next) => {
@@ -8,16 +10,25 @@ exports.getAddHome = (req, res, next) => {
     });
 }
 
-exports.getHostHomes = (req, res, next) => {
-        Home.find().then(registeredHomes => 
-            res.render('host/host-home-list',{
-            registeredHomes: registeredHomes, 
-            pageTitle: 'Host Homes List', 
+exports.getHostHomes = async (req, res, next) => {
+    try {
+        const userId = req.session?.user?._id;
+        if (!userId) return res.redirect('/login');
+
+        const host = await Host.findOne({ user: userId }).populate('homes');
+        const registeredHomes = host ? host.homes : [];
+
+        res.render('host/host-home-list', {
+            registeredHomes: registeredHomes,
+            pageTitle: 'Host Homes List',
             currentPage: 'host-homes',
             isLoggedIn: req.session.isLoggedIn,
             user: req.session.user || {}
-        })
-    );
+        });
+    } catch (err) {
+        console.error('Error fetching host homes:', err);
+        res.status(500).send('Something went wrong');
+    }
 }
 
 exports.postAddHome = async (req, res, next) => {
@@ -76,6 +87,18 @@ exports.postAddHome = async (req, res, next) => {
         console.log("HOME OBJECT:", home);
 
         await home.save();
+
+        // Associate the saved home with the Host document for this user
+        const userId = req.session?.user?._id;
+        if (userId) {
+            let host = await Host.findOne({ user: userId });
+            if (!host) {
+                host = new Host({ user: userId, homes: [home._id] });
+            } else {
+                host.homes.push(home._id);
+            }
+            await host.save();
+        }
 
         console.log("Home saved successfully");
 
@@ -182,6 +205,17 @@ exports.postDeleteHome = async (req, res, next) => {
         }
 
         await Home.findByIdAndDelete(homeId);
+
+        await User.updateMany({ favourites: homeId }, { $pull: { favourites: homeId } });
+
+        // Remove reference from the Host document for this user (if any)
+        const userId = req.session?.user?._id;
+        if (userId) {
+            await Host.updateOne({ user: userId }, { $pull: { homes: homeId } });
+        } else {
+            // fallback: remove from any host that references it
+            await Host.updateMany({ homes: homeId }, { $pull: { homes: homeId } });
+        }
 
         console.log("Deleted:", homeId);
         res.redirect('/host/host-home-list');

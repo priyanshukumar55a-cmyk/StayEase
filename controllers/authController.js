@@ -1,6 +1,7 @@
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/user");
+const Host = require("../model/host");
 const crypto = require("crypto");
 const transporter = require("../utils/mailer");
 const BASE_URL = process.env.BASE_URL;
@@ -104,6 +105,14 @@ exports.postSignup = [
                 verificationToken: hashedToken,
                 tokenExpiry: Date.now() + 3600000
             });
+
+            if(userType === "host"){
+                const host = new Host({
+                    user: user._id,
+                    homes: []
+                });
+                await host.save();
+            }
 
             await user.save();
 
