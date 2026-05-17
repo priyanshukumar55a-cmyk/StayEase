@@ -4,16 +4,19 @@ const express = require('express')
 //Local module
 const storeController = require("../controllers/storeController");
 const upload = require("../middleware/multer");
+const { ensureAuth } = require("../middleware/auth");
 
 const storeRouter = express.Router();
 
 storeRouter.get("/homes", storeController.getHomes);
-storeRouter.get("/bookings", storeController.getBookings);
+storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
 storeRouter.get("/", storeController.getIndex);
-storeRouter.get("/favourites", storeController.getFavouriteList);
+storeRouter.get("/favourites", ensureAuth, storeController.getFavouriteList);
 storeRouter.get("/homes/:homeId", storeController.getHomeDetails)
-storeRouter.post("/favourites", storeController.postAddToFavourite);
-storeRouter.post("/favourite/delete/:homeId", storeController.postRemoveFromFavourite);
+storeRouter.get("/homes/:homeId/book", ensureAuth, storeController.getBookHome);
+storeRouter.post("/homes/:homeId/book", ensureAuth, storeController.postBookHome);
+storeRouter.post("/favourites", ensureAuth, storeController.postAddToFavourite);
+storeRouter.post("/favourite/delete/:homeId", ensureAuth, storeController.postRemoveFromFavourite);
 
 storeRouter.post("/upload", upload.single("image"), (req, res) => {
     console.log('Upload route - file object:', req.file);

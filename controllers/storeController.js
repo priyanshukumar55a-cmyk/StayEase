@@ -13,10 +13,11 @@ exports.getHomes = (req, res, next) => {
 
 exports.getIndex = (req, res, next) => {
     console.log("Session value ", req.session)
-        Home.find().then(registeredHomes => 
-            res.render('store/index',{
-            registeredHomes: registeredHomes, 
-            pageTitle: 'StayEase Home', 
+
+    Home.find().then(registeredHomes =>
+        res.render('store/index', {
+            registeredHomes: registeredHomes,
+            pageTitle: 'StayEase Home',
             currentPage: 'index',
             isLoggedIn: req.session.isLoggedIn
         })
@@ -32,6 +33,7 @@ exports.getBookings = (req, res, next) => {
 }
 
 exports.getFavouriteList = async (req, res, next) => {
+
     const user = await User.findById(req.session.user._id).populate('favourites');
     const favouriteHomes = user.favourites;
 
@@ -63,6 +65,39 @@ exports.getHomeDetails = (req, res, next) => {
         }
     })
 }
+
+exports.getBookHome = (req, res, next) => {
+    const homeId = req.params.homeId;
+    Home.findById(homeId).then(home => {
+        if(!home){
+            console.log("Home not found for booking");
+            res.redirect("/homes");
+        }
+        else{
+            res.render('store/book-home',{
+                home: home,
+                pageTitle: 'Book Home', 
+                currentPage: 'Home',
+                isLoggedIn: req.session.isLoggedIn
+            })
+        }
+    })
+}
+
+exports.postBookHome = (req, res, next) => {
+    const homeId = req.params.homeId;
+    const { checkin, checkout } = req.body;
+
+    if(checkin >= checkout){
+        console.log("Invalid check-in/check-out dates");
+        return res.redirect(`/homes/${homeId}/book`);
+    }
+
+    // Logic for booking the home would go here
+    console.log(`Booking home ${homeId} from ${checkin} to ${checkout}`);
+
+    res.redirect('/bookings');
+};
 
 exports.postAddToFavourite = async (req, res, next) => {
     const homeId = req.body.id;

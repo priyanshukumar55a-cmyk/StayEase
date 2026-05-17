@@ -49,16 +49,20 @@
                     </p>
 
                     <!-- Button -->
-                    <button 
-                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg">
-                        View Details
-                    </button>
+                    <a href="/homes/<%= home._id %>">
+                        <button 
+                            class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg">
+                            View Details
+                        </button>
+                    </a>
 
                     <!--Booking-->
-                    <button 
-                        class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 mt-2 shadow-md">
-                        Book Now
-                    </button>
+                    <a href="/homes/<%= home._id %>/book">
+                        <button 
+                            class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2.5 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 mt-2 shadow-md">
+                            Book Now
+                        </button>
+                    </a>
 
                 </div>
             </div>
