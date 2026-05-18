@@ -40,7 +40,10 @@ const homeSchema = mongoose.Schema({
         type: String,
         required: true
     },
-
+    
+    photoPublicId: {
+        type: String,
+    },
     description: {
         type: String,
         trim: true

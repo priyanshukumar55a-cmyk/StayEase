@@ -2,6 +2,21 @@ const Home = require('../model/home')
 const User = require('../model/user')
 const Host = require('../model/host')
 const getCoordinates = require('../utils/geocode');
+const cloudinary = require('../config/cloudinary');
+
+// Helper to extract Cloudinary public id from a delivered URL as a fallback
+function extractPublicIdFromUrl(url) {
+    if (!url) return null;
+    try {
+        const parsed = new URL(url);
+        const path = parsed.pathname; // e.g. /res.cloudinary.com/<cloud>/image/upload/v1234567/Folder/public-id.jpg
+        const m = path.match(/\/upload\/(?:.+\/)?v\d+\/(.+)\.[a-zA-Z0-9]+$/);
+        if (m && m[1]) return m[1];
+    } catch (e) {
+        // ignore
+    }
+    return null;
+}
 
 exports.getAddHome = (req, res, next) => {
     res.render('host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
@@ -51,6 +66,7 @@ exports.postAddHome = async (req, res, next) => {
 
         // multer-storage-cloudinary can return different url props depending on version
         const photo = req.file.path || req.file.secure_url || req.file.url || null;
+        const photoPublicId = req.file.filename || req.file.public_id || extractPublicIdFromUrl(photo);
 
         if (!photo) {
             console.log('Uploaded file did not return a URL from Cloudinary');
@@ -81,6 +97,7 @@ exports.postAddHome = async (req, res, next) => {
             },
             rating,
             photo,
+            photoPublicId,
             description
         });
 
@@ -176,8 +193,29 @@ exports.postEditHome = async (req, res, next) => {
         // If a new photo was uploaded during edit, update the photo URL
         if (req.file) {
             const newPhotoUrl = req.file.path || req.file.secure_url || req.file.url || null;
+            const newPhotoPublicId = req.file.filename || req.file.public_id || extractPublicIdFromUrl(newPhotoUrl);
             if (newPhotoUrl) {
+                // delete old image if possible
+                if (home.photoPublicId) {
+                    try {
+                        await cloudinary.uploader.destroy(home.photoPublicId, { resource_type: 'image' });
+                    } catch (destroyErr) {
+                        console.warn('Failed to delete previous image from Cloudinary:', destroyErr.message || destroyErr);
+                    }
+                } else {
+                    // fallback: try to extract from existing URL
+                    const oldId = extractPublicIdFromUrl(home.photo);
+                    if (oldId) {
+                        try {
+                            await cloudinary.uploader.destroy(oldId, { resource_type: 'image' });
+                        } catch (destroyErr) {
+                            console.warn('Failed to delete previous image from Cloudinary (extracted id):', destroyErr.message || destroyErr);
+                        }
+                    }
+                }
+
                 home.photo = newPhotoUrl;
+                if (newPhotoPublicId) home.photoPublicId = newPhotoPublicId;
             } else {
                 console.log('Edit: uploaded file did not return a Cloudinary URL');
             }
@@ -202,6 +240,18 @@ exports.postDeleteHome = async (req, res, next) => {
         if (!home) {
             console.log("Home not found");
             return res.redirect("/host/host-home-list");
+        }
+
+        // attempt to delete the image from Cloudinary
+        try {
+            if (home.photoPublicId) {
+                await cloudinary.uploader.destroy(home.photoPublicId, { resource_type: 'image' });
+            } else {
+                const extracted = extractPublicIdFromUrl(home.photo);
+                if (extracted) await cloudinary.uploader.destroy(extracted, { resource_type: 'image' });
+            }
+        } catch (destroyErr) {
+            console.warn('Failed to delete image from Cloudinary for home', homeId, destroyErr.message || destroyErr);
         }
 
         await Home.findByIdAndDelete(homeId);
