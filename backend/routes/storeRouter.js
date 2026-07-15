@@ -10,10 +10,8 @@ const storeRouter = express.Router();
 
 storeRouter.get("/homes", storeController.getHomes);
 storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
-storeRouter.get("/", storeController.getIndex);
 storeRouter.get("/favourites", ensureAuth, storeController.getFavouriteList);
 storeRouter.get("/homes/:homeId", storeController.getHomeDetails)
-storeRouter.get("/homes/:homeId/book", ensureAuth, storeController.getBookHome);
 storeRouter.post("/homes/:homeId/book", ensureAuth, storeController.postBookHome);
 storeRouter.post("/favourites", ensureAuth, storeController.postAddToFavourite);
 storeRouter.post("/favourite/delete/:homeId", ensureAuth, storeController.postRemoveFromFavourite);

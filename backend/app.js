@@ -8,12 +8,8 @@ const mongoose = require("mongoose");
 const session = require('express-session')
 const MongoDBStore = require('connect-mongodb-session')(session)
 const nodemailer = require("nodemailer");
-const flash = require("connect-flash");
 
 const app = express();
-
-app.set('view engine','ejs');
-app.set('views','views');
 
 const PORT = process.env.PORT || 3000;
 
@@ -27,6 +23,15 @@ if (DB_PATH.startsWith("mongodb+srv://")) {
 
 //core module
 const path = require("path");
+
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 //Local Module
 const storeRouter = require("./routes/storeRouter")
@@ -58,18 +63,6 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24
     }
 }))
-
-app.use(flash());
-app.use((req, res, next) => {
-    res.locals.successMessage = req.flash("success");
-    next();
-});
-
-app.use((req, res, next) => {
-    res.locals.isLoggedIn = req.session?.isLoggedIn || false;
-    res.locals.user = req.session.user || null;
-    next();
-});
 
 app.use(authRouter);
 app.use(storeRouter);

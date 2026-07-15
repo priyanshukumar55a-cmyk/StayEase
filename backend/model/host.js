@@ -2,8 +2,8 @@
 const { default: mongoose } = require("mongoose");
 
 // Models
-const Home = require("../model/home");
-const User = require("../model/user");
+const Home = require("./home");
+const User = require("./user");
 
 const hostSchema = mongoose.Schema({
     user: {
