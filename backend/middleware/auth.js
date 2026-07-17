@@ -1,38 +1,86 @@
-module.exports = {
-    ensureAuth: (req, res, next) => {
-        if (req.session?.isLoggedIn && req.session?.user) {
-            return next();
-        }
+const jwt = require("jsonwebtoken");
+const User = require("../model/user");
 
-        // API vs EJS handling
-        if (req.originalUrl.startsWith('/api')) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
+exports.ensureAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
 
-        return res.redirect('/login');
-    },
-
-    ensureGuest: (req, res, next) => {
-        if (!req.session?.isLoggedIn) {
-            return next();
-        }
-
-        return res.redirect('/');
-    },
-
-    ensureHost: (req, res, next) => {
-        if (
-            req.session?.isLoggedIn &&
-            req.session?.user &&
-            req.session.user.userType === 'host'
-        ) {
-            return next();
-        }
-
-        if (req.originalUrl.startsWith('/api')) {
-            return res.status(403).json({ message: "Forbidden" });
-        }
-
-        return res.redirect('/');
+    if (!token) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
     }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token",
+    });
+  }
+};
+
+exports.ensureGuest = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+
+    if (!token) {
+      return next();
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET);
+
+    return res.status(403).json({
+      message: "Already logged in",
+    });
+  } catch {
+    next();
+  }
+};
+
+exports.ensureHost = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.userType !== "host") {
+      return res.status(403).json({
+        message: "Only hosts can access this route",
+      });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token",
+    });
+  }
 };

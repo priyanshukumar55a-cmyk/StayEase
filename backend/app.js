@@ -3,6 +3,8 @@ dns.setDefaultResultOrder("ipv4first");
 
 require("dotenv").config();
 
+const cookieParser = require("cookie-parser")
+
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require('express-session')
@@ -26,6 +28,7 @@ const path = require("path");
 
 const cors = require("cors");
 
+app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -37,7 +40,6 @@ app.use(
 const storeRouter = require("./routes/storeRouter")
 const hostRouter = require("./routes/hostRouter")
 const rootDir = require('./utils/pathUtil')
-const errorsController = require("./controllers/errors");
 const authRouter = require('./routes/authRouter');
 
 const store = new MongoDBStore({
@@ -53,32 +55,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(rootDir,'public')))
 
-
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: store,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24
-    }
-}))
-
-app.use(authRouter);
+app.use("/auth", authRouter);
 app.use(storeRouter);
-app.use("/host", (req, res, next) => {
-    if(req.session.isLoggedIn){
-        next();
-    } else{
-        res.redirect("/login")
-    }
-});
 app.use("/host", hostRouter);
-
-
-app.use(errorsController.pageNotFound)
-
-
 
 // Connect MongoDB
 mongoose

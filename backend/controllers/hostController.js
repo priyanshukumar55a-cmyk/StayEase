@@ -1,276 +1,270 @@
-const Home = require('../model/home')
-const User = require('../model/user')
-const Host = require('../model/host')
-const getCoordinates = require('../utils/geocode');
-const cloudinary = require('../config/cloudinary');
+const Home = require("../model/home");
+const User = require("../model/user");
+const Host = require("../model/host");
+const getCoordinates = require("../utils/geocode");
+const cloudinary = require("../config/cloudinary");
 
 // Helper to extract Cloudinary public id from a delivered URL as a fallback
 function extractPublicIdFromUrl(url) {
-    if (!url) return null;
-    try {
-        const parsed = new URL(url);
-        const path = parsed.pathname; // e.g. /res.cloudinary.com/<cloud>/image/upload/v1234567/Folder/public-id.jpg
-        const m = path.match(/\/upload\/(?:.+\/)?v\d+\/(.+)\.[a-zA-Z0-9]+$/);
-        if (m && m[1]) return m[1];
-    } catch (e) {
-        // ignore
-    }
-    return null;
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname; // e.g. /res.cloudinary.com/<cloud>/image/upload/v1234567/Folder/public-id.jpg
+    const m = path.match(/\/upload\/(?:.+\/)?v\d+\/(.+)\.[a-zA-Z0-9]+$/);
+    if (m && m[1]) return m[1];
+  } catch (e) {
+    // ignore
+  }
+  return null;
 }
 
-exports.getAddHome = (req, res, next) => {
-    res.render('host/edit-home', {pageTitle: 'Add Home to airbnb', currentPage: 'addHome', editing : false,
-    isLoggedIn: req.session.isLoggedIn,
-    user: req.session.user || {}
+exports.getHostHomes = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const host = await Host.findOne({ user: userId }).populate("homes");
+
+    res.status(200).json({
+      homes: host ? host.homes : [],
     });
-}
-
-exports.getHostHomes = async (req, res, next) => {
-    try {
-        const userId = req.session?.user?._id;
-        if (!userId) return res.redirect('/login');
-
-        const host = await Host.findOne({ user: userId }).populate('homes');
-        const registeredHomes = host ? host.homes : [];
-
-        res.render('host/host-home-list', {
-            registeredHomes: registeredHomes,
-            pageTitle: 'Host Homes List',
-            currentPage: 'host-homes',
-            isLoggedIn: req.session.isLoggedIn,
-            user: req.session.user || {}
-        });
-    } catch (err) {
-        console.error('Error fetching host homes:', err);
-        res.status(500).send('Something went wrong');
-    }
-}
-
-exports.postAddHome = async (req, res, next) => {
-    try {
-
-        console.log("BODY:", req.body);
-        console.log("FILE:", req.file);
-
-        const { homeName, price, address, rating, description } = req.body;
-
-        if (!req.file) {
-            console.log("No file uploaded");
-            return res.redirect('/host/add-home');
-        }
-
-        if (!homeName?.trim() || !price || !address?.trim() || !description?.trim()) {
-            console.log("Missing required fields");
-            return res.redirect('/host/add-home');
-        }
-
-        // multer-storage-cloudinary can return different url props depending on version
-        const photo = req.file.path || req.file.secure_url || req.file.url || null;
-        const photoPublicId = req.file.filename || req.file.public_id || extractPublicIdFromUrl(photo);
-
-        if (!photo) {
-            console.log('Uploaded file did not return a URL from Cloudinary');
-            return res.redirect('/host/add-home');
-        }
-
-        console.log("PHOTO URL:", photo);
-
-        // Convert address to coordinates
-        let coords;
-
-        try {
-            coords = await getCoordinates(address);
-        } catch (err) {
-            console.log("Geocoding failed:", err.message);
-            return res.redirect('/host/add-home'); // prevent crash
-        }
-
-        console.log("COORDS:", coords);
-
-        const home = new Home({
-            homeName,
-            price,
-            address,
-            location: {
-                type: "Point",
-                coordinates: [coords.lng, coords.lat]
-            },
-            rating,
-            photo,
-            photoPublicId,
-            description
-        });
-
-        console.log("HOME OBJECT:", home);
-
-        await home.save();
-
-        // Associate the saved home with the Host document for this user
-        const userId = req.session?.user?._id;
-        if (userId) {
-            let host = await Host.findOne({ user: userId });
-            if (!host) {
-                host = new Host({ user: userId, homes: [home._id] });
-            } else {
-                host.homes.push(home._id);
-            }
-            await host.save();
-        }
-
-        console.log("Home saved successfully");
-
-        res.redirect('/host/host-home-list');
-
-    } catch (err) {
-
-        console.error("ADD HOME ERROR:");
-        console.error(err);
-        console.error(err.message);
-        console.error(err.stack);
-
-        res.status(500).send("Something went wrong");
-
-    }
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch homes",
+    });
+  }
 };
 
-exports.getEditHome = (req, res, next) => {
-    const homeId = req.params.homeId;
-    const editing = req.query.editing === 'true';
+exports.postAddHome = async (req, res) => {
+  try {
+    const { homeName, price, address, rating, description } = req.body;
 
-    Home.findById(homeId).then(home => {
-        if(!home){
-            console.log("Home not found for editing")
-            return res.redirect("/host/host-home-list")
+    if (
+      !homeName?.trim() ||
+      !price ||
+      !address?.trim() ||
+      !description?.trim()
+    ) {
+      return res.status(400).json({
+        message: "Please fill in all required fields",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Image is required",
+      });
+    }
+
+    const coords = await getCoordinates(address);
+    const photo = req.file.path || req.file.secure_url || req.file.url || null;
+    const photoPublicId =
+      req.file.filename || req.file.public_id || extractPublicIdFromUrl(photo);
+
+    if (!photo) {
+      return res.status(400).json({
+        message: "Image upload failed",
+      });
+    }
+
+    const home = new Home({
+      homeName,
+      price,
+      address,
+      location: {
+        type: "Point",
+        coordinates: [coords.lng, coords.lat],
+      },
+      rating,
+      photo,
+      photoPublicId,
+      description,
+    });
+
+    await home.save();
+
+    const userId = req.user?._id;
+    if (userId) {
+      let host = await Host.findOne({ user: userId });
+      if (!host) {
+        host = new Host({ user: userId, homes: [home._id] });
+      } else {
+        host.homes.push(home._id);
+      }
+      await host.save();
+    }
+
+    res.status(201).json({
+      message: "Home added successfully",
+      home,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: err.message || "Failed to add home",
+    });
+  }
+};
+
+exports.getEditHome = async (req, res) => {
+  try {
+    const home = await Home.findById(req.params.homeId);
+
+    if (!home) {
+      return res.status(404).json({
+        message: "Home not found",
+      });
+    }
+
+    res.json(home);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+exports.postEditHome = async (req, res) => {
+  const { id, homeId, homeName, price, address, rating, description } = req.body;
+  const targetHomeId = id || homeId;
+
+  if (
+    !targetHomeId ||
+    !homeName?.trim() ||
+    !price ||
+    !address?.trim() ||
+    !rating ||
+    !description?.trim()
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Please fill in all required fields" });
+  }
+
+  try {
+    const home = await Home.findById(targetHomeId);
+    if (!home) {
+      return res.status(404).json({ message: "Home not found" });
+    }
+
+    home.homeName = homeName;
+    home.price = price;
+    home.address = address;
+    home.rating = rating;
+
+    let coords;
+    try {
+      coords = await getCoordinates(address);
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ message: "Could not find coordinates for that address" });
+    }
+
+    home.location = {
+      type: "Point",
+      coordinates: [coords.lng, coords.lat],
+    };
+
+    home.description = description;
+
+    if (req.file) {
+      const newPhotoUrl =
+        req.file.path || req.file.secure_url || req.file.url || null;
+      const newPhotoPublicId =
+        req.file.filename ||
+        req.file.public_id ||
+        extractPublicIdFromUrl(newPhotoUrl);
+
+      if (newPhotoUrl) {
+        if (home.photoPublicId) {
+          try {
+            await cloudinary.uploader.destroy(home.photoPublicId, {
+              resource_type: "image",
+            });
+          } catch (destroyErr) {
+            console.warn(
+              "Failed to delete previous image from Cloudinary:",
+              destroyErr.message || destroyErr,
+            );
+          }
         }
-        console.log(homeId, editing, home);
-        res.render('host/edit-home', {
-            home: home,
-            pageTitle: 'Edit your Home', 
-            currentPage: 'host-homes',
-            editing : editing,
-            isLoggedIn: req.session.isLoggedIn,
-            user: req.session.user || {}
+
+        home.photo = newPhotoUrl;
+        if (newPhotoPublicId) home.photoPublicId = newPhotoPublicId;
+      }
+    }
+
+    await home.save();
+
+    res.status(200).json({
+      message: "Home updated successfully",
+      home,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Failed to update home" });
+  }
+};
+
+exports.postDeleteHome = async (req, res) => {
+  const homeId = req.params.homeId;
+
+  try {
+    const home = await Home.findById(homeId);
+
+    if (!home) {
+        res.status(500).json({
+          message: "Home not found"
         });
-    })
-}
-
-exports.postEditHome = async (req, res, next) => {
-    const {id, homeName, price, address, rating, description} = req.body;
-    
-    if (!id || !homeName || !price || !address || !rating || !description) {
-        console.log("Missing required fields");
-        return res.redirect('/host/host-home-list');
     }
-    
+
+    // attempt to delete the image from Cloudinary
     try {
-        const home = await Home.findById(id);
-        if (!home) {
-            console.log("Home not found");
-            return res.redirect('/host/host-home-list');
-        }
-        
-        home.homeName = homeName;
-        home.price = price;
-        home.address = address;
-        home.rating = rating;
-        
-        // Convert address to coordinates
-        let coords;
-
-        try {
-            coords = await getCoordinates(address);
-        } catch (err) {
-            console.log("Geocoding failed:", err.message);
-            return res.redirect('/host/add-home'); // prevent crash
-        }
-        home.location = {
-            type: "Point",
-            coordinates: [coords.lng, coords.lat]
-        };
-        
-        home.description = description;
-
-        // If a new photo was uploaded during edit, update the photo URL
-        if (req.file) {
-            const newPhotoUrl = req.file.path || req.file.secure_url || req.file.url || null;
-            const newPhotoPublicId = req.file.filename || req.file.public_id || extractPublicIdFromUrl(newPhotoUrl);
-            if (newPhotoUrl) {
-                // delete old image if possible
-                if (home.photoPublicId) {
-                    try {
-                        await cloudinary.uploader.destroy(home.photoPublicId, { resource_type: 'image' });
-                    } catch (destroyErr) {
-                        console.warn('Failed to delete previous image from Cloudinary:', destroyErr.message || destroyErr);
-                    }
-                } else {
-                    // fallback: try to extract from existing URL
-                    const oldId = extractPublicIdFromUrl(home.photo);
-                    if (oldId) {
-                        try {
-                            await cloudinary.uploader.destroy(oldId, { resource_type: 'image' });
-                        } catch (destroyErr) {
-                            console.warn('Failed to delete previous image from Cloudinary (extracted id):', destroyErr.message || destroyErr);
-                        }
-                    }
-                }
-
-                home.photo = newPhotoUrl;
-                if (newPhotoPublicId) home.photoPublicId = newPhotoPublicId;
-            } else {
-                console.log('Edit: uploaded file did not return a Cloudinary URL');
-            }
-        }
-        
-        await home.save();
-        console.log('Home updated successfully');
-        res.redirect('/host/host-home-list');
-        
-    } catch (err) {
-        console.log("Error while updating home: ", err);
-        res.redirect('/host/host-home-list');
+      if (home.photoPublicId) {
+        await cloudinary.uploader.destroy(home.photoPublicId, {
+          resource_type: "image",
+        });
+      } else {
+        const extracted = extractPublicIdFromUrl(home.photo);
+        if (extracted)
+          await cloudinary.uploader.destroy(extracted, {
+            resource_type: "image",
+          });
+      }
+    } catch (destroyErr) {
+      console.warn(
+        "Failed to delete image from Cloudinary for home",
+        homeId,
+        destroyErr.message || destroyErr,
+      );
     }
-}
 
-exports.postDeleteHome = async (req, res, next) => {
-    const homeId = req.params.homeId;
+    await Home.findByIdAndDelete(homeId);
 
-    try {
-        const home = await Home.findById(homeId);
+    await User.updateMany(
+      { favourites: homeId },
+      { $pull: { favourites: homeId } },
+    );
 
-        if (!home) {
-            console.log("Home not found");
-            return res.redirect("/host/host-home-list");
-        }
-
-        // attempt to delete the image from Cloudinary
-        try {
-            if (home.photoPublicId) {
-                await cloudinary.uploader.destroy(home.photoPublicId, { resource_type: 'image' });
-            } else {
-                const extracted = extractPublicIdFromUrl(home.photo);
-                if (extracted) await cloudinary.uploader.destroy(extracted, { resource_type: 'image' });
-            }
-        } catch (destroyErr) {
-            console.warn('Failed to delete image from Cloudinary for home', homeId, destroyErr.message || destroyErr);
-        }
-
-        await Home.findByIdAndDelete(homeId);
-
-        await User.updateMany({ favourites: homeId }, { $pull: { favourites: homeId } });
-
-        // Remove reference from the Host document for this user (if any)
-        const userId = req.session?.user?._id;
-        if (userId) {
-            await Host.updateOne({ user: userId }, { $pull: { homes: homeId } });
-        } else {
-            // fallback: remove from any host that references it
-            await Host.updateMany({ homes: homeId }, { $pull: { homes: homeId } });
-        }
-
-        console.log("Deleted:", homeId);
-        res.redirect('/host/host-home-list');
-
-    } catch (err) {
-        console.log("Delete error:", err);
+    // Remove reference from the Host document for this user (if any)
+    const userId = req.user?._id;
+    if (userId) {
+      await Host.updateOne({ user: userId }, { $pull: { homes: homeId } });
+    } else {
+      // fallback: remove from any host that references it
+      await Host.updateMany({ homes: homeId }, { $pull: { homes: homeId } });
     }
+
+    res.json({
+      message: "Home deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };

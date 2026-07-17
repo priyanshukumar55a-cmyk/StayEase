@@ -1,0 +1,21 @@
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
+
+export const loginUser = async (credentials) => {
+  const res = await API.post("/auth/login", credentials);
+  return res.data.user;
+};
+
+export const signupUser = async (userData) => {
+  const res = await API.post("/auth/signup", userData);
+  return res.data.user;
+};
+
+export const logoutUser = async () => {
+  const res = await API.post("/auth/logout");
+  return res.data;
+};

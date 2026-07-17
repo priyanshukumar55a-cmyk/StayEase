@@ -5,7 +5,7 @@ const Host = require("../model/host");
 const crypto = require("crypto");
 const transporter = require("../utils/mailer");
 const BASE_URL = process.env.BASE_URL;
-
+const generateToken = require("../utils/generateToken")
 
 exports.getLogin = (req, res, next) => {
     res.render('auth/login', {
@@ -111,7 +111,7 @@ exports.postSignup = [
                 host = new Host({ user: user._id, homes: [] });
             }
 
-            const verifyUrl = `${BASE_URL}/verify-email?token=${rawToken}`;
+            const verifyUrl = `${BASE_URL}/auth/verify-email?token=${rawToken}`;
 
             try {
                 // Try to send verification email before persisting to DB.
@@ -137,10 +137,25 @@ exports.postSignup = [
             await user.save();
             if(host) await host.save();
 
-            // FLASH MESSAGE
-            req.flash("success", "Check your email for verification");
-            res.redirect('/login');
+            const token = generateToken(user._id);
 
+            res.cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+
+            res.status(201).json({
+              success: true,
+              user: {
+                _id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                userType: user.userType,
+              },
+            });
         } 
         catch(err) {
             return res.status(422).render('auth/signup', {
@@ -184,27 +199,38 @@ exports.postLogin = async (req, res, next) => {
         });
     }
 
-    req.session.user = {
-        _id: user._id.toString(),
-        email: user.email,
-        userType: user.userType
-    };
-    req.session.isLoggedIn = !!req.session.user;
+    const token = generateToken(user._id);
 
-    req.session.save(err => {
-        if (err) {
-            console.log(err);
-            return res.redirect('/login');
-        }
-        res.redirect('/');
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        userType: user.userType,
+      },
     });
 }
 
-exports.postLogout = (req, res, next) => {
-    req.session.destroy(() => {
-        res.redirect('/login');
-    })
-}
+exports.postLogout = (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
 
 exports.getVerifyEmail = async (req, res, next) => {
     const hashedToken = crypto.createHash("sha256").update(req.query.token).digest("hex");

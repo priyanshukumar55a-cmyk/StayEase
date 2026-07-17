@@ -7,7 +7,6 @@ const upload = require("../middleware/multer");
 const hostController = require("../controllers/hostController");
 const { ensureAuth, ensureHost } = require("../middleware/auth");
 
-hostRouter.get("/add-home", ensureAuth, ensureHost, hostController.getAddHome);
 hostRouter.post(
     "/add-home",
     ensureAuth,
@@ -15,7 +14,7 @@ hostRouter.post(
     upload.single("photo"),
     hostController.postAddHome
 );
-hostRouter.get("/host-home-list", ensureAuth, ensureHost, hostController.getHostHomes);
+hostRouter.get("/homes", ensureAuth, ensureHost, hostController.getHostHomes);
 hostRouter.get("/edit-home/:homeId", ensureAuth, ensureHost, hostController.getEditHome);
 hostRouter.post(
     "/edit-home",
@@ -24,6 +23,6 @@ hostRouter.post(
     upload.single("photo"),
     hostController.postEditHome
 );
-hostRouter.post("/delete-home/:homeId", ensureAuth, ensureHost, hostController.postDeleteHome);
+hostRouter.delete("/delete-home/:homeId", ensureAuth, ensureHost, hostController.postDeleteHome);
 
 module.exports = hostRouter;
