@@ -3,12 +3,12 @@ dns.setDefaultResultOrder("ipv4first");
 
 require("dotenv").config();
 
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
 
 const express = require("express");
 const mongoose = require("mongoose");
-const session = require('express-session')
-const MongoDBStore = require('connect-mongodb-session')(session)
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 const nodemailer = require("nodemailer");
 
 const app = express();
@@ -37,26 +37,26 @@ app.use(
 );
 
 //Local Module
-const storeRouter = require("./routes/storeRouter")
-const hostRouter = require("./routes/hostRouter")
-const rootDir = require('./utils/pathUtil')
-const authRouter = require('./routes/authRouter');
+const storeRouter = require("./routes/storeRouter");
+const hostRouter = require("./routes/hostRouter");
+const rootDir = require("./utils/pathUtil");
+const authRouter = require("./routes/authRouter");
 
 const store = new MongoDBStore({
-    uri: DB_PATH,
-    collection: 'sessions'
-})
+  uri: DB_PATH,
+  collection: "sessions",
+});
 
 app.use((req, res, next) => {
-    next();
-})
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(rootDir,'public')))
+app.use(express.static(path.join(rootDir, "public")));
 
 app.use("/auth", authRouter);
-app.use(storeRouter);
+app.use("/", storeRouter);
 app.use("/host", hostRouter);
 
 // Connect MongoDB

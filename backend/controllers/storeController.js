@@ -37,9 +37,7 @@ exports.getBookings = async (req, res) => {
 
 exports.getFavouriteList = async (req, res) => {
   try {
-    const user = await User.findById(req.session.user._id).populate(
-      "favourites",
-    );
+    const user = await User.findById(req.user._id).populate("favourites");
 
     res.json({
       success: true,
@@ -101,34 +99,57 @@ exports.postBookHome = async (req, res) => {
   }
 };
 
-exports.postAddToFavourite = async (req, res, next) => {
-  const homeId = req.body.id;
-  const userId = req.session.user._id;
-  const user = await User.findById(userId);
-  if (!user.favourites.includes(homeId)) {
-    user.favourites.push(homeId);
-    await user.save();
-  }
+exports.postAddToFavourite = async (req, res) => {
+  try {
+    const { homeId } = req.params;
 
-  res.json({
-    success: true,
-    message: "Added to favourites",
-  });
+    const result = await User.updateOne(
+      { _id: req.user._id },
+      { $addToSet: { favourites: homeId } },
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Home already added to favourites",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Added to favourites",
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to add favourite",
+    });
+  }
 };
 
-exports.postRemoveFromFavourite = async (req, res, next) => {
-  const homeId = req.params.homeId;
-  const userId = req.session.user._id;
-  const user = await User.findById(userId);
-  if (user.favourites.includes(homeId)) {
-    user.favourites.pull(homeId);
-    await user.save();
-  }
+exports.postRemoveFromFavourite = async (req, res) => {
+  try {
+    const { homeId } = req.params;
 
-  res.json({
-    success: true,
-    message: "Removed from favourites",
-  });
+    await User.updateOne(
+      { _id: req.user._id },
+      { $pull: { favourites: homeId } },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Removed from favourites",
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove favourite",
+    });
+  }
 };
 
 const getCoordinates = require("../utils/geocode");

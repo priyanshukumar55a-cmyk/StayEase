@@ -9,7 +9,11 @@ import { Toaster } from "sonner";
 import AddHome from "./pages/Host/AddHome";
 import HostHomes from "./pages/Host/HostHomes";
 import { Loader2 } from "lucide-react";
-import { getHomeDetails } from "./api/homeApi";
+import VerifyEmail from "./pages/VerifyEmail";
+import HomesExplore from "./pages/HomeListExplore";
+import Favourites from "./pages/Favourites";
+import Bookings from "./pages/Bookings";
+import BookHome from "./pages/BookHome";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -63,8 +67,13 @@ const router = createBrowserRouter([
       },
       {
         path: "/host/edit-home/:homeId",
-        element: <AddHome editing={true}/>,
+        element: <AddHome editing={true} />,
       },
+      { path: "auth/verify-email", element: <VerifyEmail /> },
+      { path: "/homes-explore", element: <HomesExplore /> },
+      { path: "/favourites", element: <Favourites /> },
+      { path: "/bookings", element: <Bookings /> },
+      { path: "/homes/:homeId/book", element: <BookHome /> },
     ],
   },
 ]);

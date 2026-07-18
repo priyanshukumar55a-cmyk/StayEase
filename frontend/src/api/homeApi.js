@@ -25,3 +25,33 @@ export const getHomeDetails = async (homeId) => {
         throw err;
     }
 };
+
+export const getFavouriteHomes = async () => {
+  try {
+    const res = await API.get(`/favourites`);
+    return res.data?.favourites;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const removeFavourite = async (homeId) => {
+  try {
+    const res = await API.post(`/favourite/delete/${homeId}`);
+    return res.data?.message;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const addHomeToFavourites = async (homeId) => {
+  try {
+    const res = await API.post(`/favourites/${homeId}`);
+    return res.data?.message;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};

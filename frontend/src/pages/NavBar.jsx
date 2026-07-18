@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   Menu,
   Home,
@@ -11,10 +11,12 @@ import {
   LogOut,
   House,
   Plus,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,9 +24,14 @@ export default function Navbar() {
 
   const normal = "text-slate-700 hover:bg-blue-50 hover:text-blue-600";
 
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
-    <header className="bg-slate-100 border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
-      <div className="px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b-2 border-gray-300 bg-slate-100 shadow-sm">
+      <div className="px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-2xl font-extrabold text-blue-600">
           StayEase
@@ -48,7 +55,7 @@ export default function Navbar() {
           {isLoggedIn && user?.userType === "guest" && (
             <>
               <NavLink
-                to="/homes"
+                to="/homes-explore"
                 className={({ isActive }) =>
                   `${isActive ? active : normal}
                   px-4 py-2 rounded-full text-sm font-medium`
@@ -145,7 +152,7 @@ export default function Navbar() {
             </>
           ) : (
             <button
-              onClick={logout}
+              onClick={() => handleLogout()}
               className="px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-200 hover:cursor-pointer"
             >
               <span className="flex items-center gap-2">
@@ -155,90 +162,156 @@ export default function Navbar() {
             </button>
           )}
         </div>
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
 
         {/* Mobile Button */}
         <button
-          className="md:hidden"
+          className="md:hidden rounded-xl p-2 transition hover:bg-slate-200 z-50"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
-          <Menu size={28} />
+          <div
+            className={`transition-transform duration-200 ${
+              mobileOpen ? "rotate-90" : ""
+            }`}
+          >
+            {mobileOpen ? (
+              <X size={26} className="text-slate-700" />
+            ) : (
+              <Menu size={26} className="text-slate-700" />
+            )}
+          </div>
         </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t p-4 space-y-3">
-          <Link to="/" className="block p-3 rounded-xl hover:bg-blue-50">
-            Home
-          </Link>
+        <div className="md:hidden absolute top-full left-0 right-0 px-4 pt-3 z-50">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-purple-300 backdrop-blur-xl shadow-2xl">
+            {isLoggedIn && (
+              <div className="border-b border-slate-200 px-5 py-4">
+                <p className="font-semibold text-slate-900">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-sm text-slate-500">{user?.email}</p>
+              </div>
+            )}
 
-          {isLoggedIn && user?.userType === "guest" && (
-            <>
-              <Link
-                to="/homes"
-                className="block p-3 rounded-xl hover:bg-blue-50"
+            <div className="p-3 space-y-1">
+              <NavLink
+                to="/"
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `${isActive ? "bg-blue-600 text-white" : "text-blue-600 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                }
               >
-                Explore
-              </Link>
+                <Home size={18} />
+                Home
+              </NavLink>
 
-              <Link
-                to="/favourites"
-                className="block p-3 rounded-xl hover:bg-blue-50"
-              >
-                Favourites
-              </Link>
+              {isLoggedIn && user?.userType === "guest" && (
+                <>
+                  <NavLink
+                    to="/homes-explore"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                    }
+                  >
+                    <Compass size={18} />
+                    Explore
+                  </NavLink>
 
-              <Link
-                to="/bookings"
-                className="block p-3 rounded-xl hover:bg-blue-50"
-              >
-                Bookings
-              </Link>
-            </>
-          )}
+                  <NavLink
+                    to="/favourites"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                    }
+                  >
+                    <Heart size={18} />
+                    Favourites
+                  </NavLink>
 
-          {isLoggedIn && user?.userType === "host" && (
-            <>
-              <Link
-                to="/host"
-                className="block p-3 rounded-xl hover:bg-blue-50"
-              >
-                Host Dashboard
-              </Link>
+                  <NavLink
+                    to="/bookings"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                    }
+                  >
+                    <Calendar size={18} />
+                    Bookings
+                  </NavLink>
+                </>
+              )}
 
-              <Link
-                to="/host/add-home"
-                className="block bg-blue-600 text-white text-center p-3 rounded-xl"
-              >
-                Add Home
-              </Link>
-            </>
-          )}
+              {isLoggedIn && user?.userType === "host" && (
+                <>
+                  <NavLink
+                    to="/host"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                    }
+                  >
+                    <House size={18} />
+                    Host Dashboard
+                  </NavLink>
 
-          {!isLoggedIn ? (
-            <>
-              <Link
-                to="/login"
-                className="block bg-blue-600 text-white text-center p-3 rounded-xl"
-              >
-                Login
-              </Link>
+                  <Link
+                    to="/host/add-home"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 font-medium text-white"
+                  >
+                    <Plus size={18} />
+                    Add Home
+                  </Link>
+                </>
+              )}
 
-              <Link
-                to="/signup"
-                className="block border border-blue-200 text-center p-3 rounded-xl"
-              >
-                Create Account
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={logout}
-              className="w-full bg-red-50 text-red-600 p-3 rounded-xl"
-            >
-              Logout
-            </button>
-          )}
+              {!isLoggedIn ? (
+                <>
+                  <NavLink
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-700 text-white" : "bg-white/70 text-slate-700"} flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-medium`
+                    }
+                  >
+                    <LogIn size={18} />
+                    Login
+                  </NavLink>
+
+                  <NavLink
+                    to="/signup"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `${isActive ? "bg-blue-600 text-white" : "bg-white/70 text-slate-700 border border-slate-300"} flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-medium`
+                    }
+                  >
+                    <UserPlus size={18} />
+                    Create Account
+                  </NavLink>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileOpen(false);
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 font-medium text-red-600"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </header>
