@@ -7,6 +7,12 @@ const homeSchema = mongoose.Schema({
         trim: true
     },
 
+    host: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
     price: {
         type: Number,
         required: true

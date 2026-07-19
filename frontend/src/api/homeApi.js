@@ -55,3 +55,23 @@ export const addHomeToFavourites = async (homeId) => {
     throw err;
   }
 };
+
+export const bookHome = async (homeId, bookingData) => {
+  try {
+    const res = await API.post(`/homes/${homeId}/book`, bookingData);
+    return res.data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const getBookings = async () => {
+  try {
+    const res = await API.get(`/bookings`);
+    return res.data.bookings;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};

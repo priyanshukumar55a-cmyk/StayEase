@@ -1,3 +1,4 @@
+const Booking = require("../model/booking");
 const Home = require("../model/home");
 const User = require("../model/user");
 
@@ -19,13 +20,22 @@ exports.getHomes = async (req, res) => {
 
 exports.getBookings = async (req, res) => {
   try {
-    const userId = req.session.user._id;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+    const userId = req.user._id;
 
-    const user = await User.findById(userId).populate("bookings");
+    const bookings = await Booking.find({ guest: userId })
+      .populate("home")
+      .populate("host", "firstName lastName email")
+      .sort({ checkIn: -1 });
 
     res.json({
       success: true,
-      bookings: user.bookings,
+      bookings,
     });
   } catch (err) {
     res.status(500).json({
@@ -78,18 +88,60 @@ exports.postBookHome = async (req, res) => {
   try {
     const { checkin, checkout } = req.body;
 
-    if (checkin >= checkout) {
+    if (checkin > checkout) {
       return res.status(400).json({
         success: false,
         message: "Invalid dates",
       });
     }
 
-    // save booking
+    const home = await Home.findById(req.params.homeId);
+
+    if (!home) {
+      return res.status(404).json({
+        success: false,
+        message: "Home not found",
+      });
+    }
+
+    const existingBooking = await Booking.find({
+      home: home._id,
+      status: { $ne: "cancelled" },
+
+      $or: [
+        {
+          checkIn: { $lt: new Date(checkout) },
+          checkOut: { $gt: new Date(checkin) },
+        },
+      ],
+    });
+
+    if (existingBooking.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Home is already booked for the selected dates",
+      });
+    }
+
+    const days =
+      Math.ceil(
+        (new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24),
+      ) || 1;
+
+    const totalPrice = days * home.price;
+
+    const booking = await Booking.create({
+      guest: req.user._id,
+      host: home.host,
+      home: home._id,
+      checkIn: new Date(checkin),
+      checkOut: new Date(checkout),
+      totalPrice,
+    });
 
     res.status(201).json({
       success: true,
-      message: "Booking successful",
+      booking,
     });
   } catch (err) {
     res.status(500).json({

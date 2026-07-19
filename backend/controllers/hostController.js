@@ -72,6 +72,7 @@ exports.postAddHome = async (req, res) => {
 
     const home = new Home({
       homeName,
+      host: req.user._id,
       price,
       address,
       location: {

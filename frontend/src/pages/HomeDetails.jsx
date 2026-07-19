@@ -5,6 +5,7 @@ import { getHomeDetails } from "../api/homeApi";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
+import { Loader2 } from "lucide-react";
 
 export default function HomeDetails() {
   const { homeId } = useParams();
@@ -27,8 +28,9 @@ export default function HomeDetails() {
 
   if (!home) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        Loading...
+      <div className="flex items-center justify-center min-h-screen gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
+        <span className="text-3xl text-black/80">Loading...</span>
       </div>
     );
   }
@@ -37,7 +39,7 @@ export default function HomeDetails() {
   const lng = home?.location?.coordinates?.[0];
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
+    <main className="min-h-screen bg-gray-50 flex justify-center px-4 py-6">
       <div className="w-full max-w-4xl">
         {/* Title */}
         <h2 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
