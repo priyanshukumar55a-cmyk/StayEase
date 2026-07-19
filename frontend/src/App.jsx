@@ -9,11 +9,13 @@ import { Toaster } from "sonner";
 import AddHome from "./pages/Host/AddHome";
 import HostHomes from "./pages/Host/HostHomes";
 import { Loader2 } from "lucide-react";
-import VerifyEmail from "./pages/VerifyEmail";
+import VerifyEmail from "./auth/VerifyEmail";
 import HomesExplore from "./pages/HomeListExplore";
 import Favourites from "./pages/Favourites";
 import Bookings from "./pages/Bookings";
 import BookHome from "./pages/BookHome";
+import PublicRoute from "./auth/PublicRoute";
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -47,33 +49,87 @@ const router = createBrowserRouter([
       },
       {
         path: "/homes/:homeId",
-        element: <HomeDetails />,
+        element: (
+          <ProtectedRoute>
+            <HomeDetails />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/login",
-        element: <Login />,
+        element: (
+          <PublicRoute>
+            {" "}
+            <Login />
+          </PublicRoute>
+        ),
       },
       {
         path: "/signup",
-        element: <Signup />,
+        element: (
+          <PublicRoute>
+            {" "}
+            <Signup />
+          </PublicRoute>
+        ),
       },
       {
         path: "/host/add-home",
-        element: <AddHome />,
+        element: (
+          <ProtectedRoute>
+            <AddHome />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/host",
-        element: <HostHomes />,
+        element: (
+          <ProtectedRoute>
+            <HostHomes />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/host/edit-home/:homeId",
-        element: <AddHome editing={true} />,
+        element: (
+          <ProtectedRoute>
+            <AddHome editing={true} />
+          </ProtectedRoute>
+        ),
       },
       { path: "auth/verify-email", element: <VerifyEmail /> },
-      { path: "/homes-explore", element: <HomesExplore /> },
-      { path: "/favourites", element: <Favourites /> },
-      { path: "/bookings", element: <Bookings /> },
-      { path: "/homes/:homeId/book", element: <BookHome /> },
+      {
+        path: "/homes-explore",
+        element: (
+          <ProtectedRoute>
+            <HomesExplore />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/favourites",
+        element: (
+          <ProtectedRoute>
+            <Favourites />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/bookings",
+        element: (
+          <ProtectedRoute>
+            <Bookings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/homes/:homeId/book",
+        element: (
+          <ProtectedRoute>
+            <BookHome />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);
