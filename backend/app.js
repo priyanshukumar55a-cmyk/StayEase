@@ -7,8 +7,6 @@ const cookieParser = require("cookie-parser");
 
 const express = require("express");
 const mongoose = require("mongoose");
-const session = require("express-session");
-const MongoDBStore = require("connect-mongodb-session")(session);
 const nodemailer = require("nodemailer");
 
 const app = express();
@@ -52,11 +50,6 @@ const storeRouter = require("./routes/storeRouter");
 const hostRouter = require("./routes/hostRouter");
 const rootDir = require("./utils/pathUtil");
 const authRouter = require("./routes/authRouter");
-
-const store = new MongoDBStore({
-  uri: DB_PATH,
-  collection: "sessions",
-});
 
 app.use((req, res, next) => {
   next();

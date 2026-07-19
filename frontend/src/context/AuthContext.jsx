@@ -28,15 +28,22 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
     };
 
+    const navigate = useNavigate();
+
     const logout = async () => {
       try {
-        await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
-        toast.success("Logout successfull")
-      } catch (err) {
-        console.log(err);
-      }
+        await axios.post(
+          `${API_URL}/auth/logout`,
+          {},
+          { withCredentials: true },
+        );
 
-      setUser(null);
+        setUser(null);
+        toast.success("Logout successful");
+        navigate("/login");
+      } catch (err) {
+        toast.error("Logout failed");
+      }
     };
 
     useEffect(() => {
