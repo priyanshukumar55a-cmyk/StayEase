@@ -1,6 +1,5 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const AuthContext = createContext();
@@ -29,8 +28,6 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
     };
 
-    const navigate = useNavigate();
-
     const logout = async () => {
       try {
         await axios.post(
@@ -41,7 +38,6 @@ export const AuthProvider = ({ children }) => {
 
         setUser(null);
         toast.success("Logout successful");
-        navigate("/login");
       } catch (err) {
         toast.error("Logout failed");
       }
