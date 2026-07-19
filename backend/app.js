@@ -42,7 +42,7 @@ const cors = require("cors");
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://stay-ease-app-flax.vercel.app/"],
+    origin: ["http://localhost:5173", "https://stay-ease-app-flax.vercel.app"],
     credentials: true,
   }),
 );
