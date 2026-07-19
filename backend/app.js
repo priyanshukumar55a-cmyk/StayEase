@@ -18,8 +18,19 @@ const PORT = process.env.PORT || 3000;
 // Use your MongoDB Atlas URL
 const DB_PATH = process.env.MONGO_URI;
 
-// Fix DNS issue for MongoDB Atlas
-if (DB_PATH.startsWith("mongodb+srv://")) {
+// Validate required environment variables early to fail fast with clear messages
+const requiredEnvs = ["MONGO_URI", "JWT_SECRET", "EMAIL", "EMAIL_PASS"];
+const missing = requiredEnvs.filter((k) => !process.env[k]);
+if (missing.length) {
+  console.error("Missing required environment variables:", missing.join(", "));
+  console.error(
+    "Set them in your environment or .env before starting the app.",
+  );
+  process.exit(1);
+}
+
+// Fix DNS issue for MongoDB Atlas (only when DB_PATH is set)
+if (DB_PATH && DB_PATH.startsWith("mongodb+srv://")) {
   dns.setServers(["8.8.8.8", "8.8.4.4"]);
 }
 
