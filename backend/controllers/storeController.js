@@ -243,3 +243,50 @@ exports.createListing = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.cancelBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.guest.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        message: "Booking already cancelled",
+      });
+    }
+
+    const hoursLeft =
+      (new Date(booking.checkIn) - Date.now()) / (1000 * 60 * 60);
+
+    if (hoursLeft < 24) {
+      return res.status(400).json({
+        message: "Booking can no longer be cancelled",
+      });
+    }
+
+    booking.status = "cancelled";
+    booking.cancelledAt = new Date();
+
+    await booking.save();
+
+    res.json({
+      message: "Booking cancelled successfully",
+      booking,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};

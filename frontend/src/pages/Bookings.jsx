@@ -1,24 +1,38 @@
 import { useEffect, useState } from "react";
 import { Loader2, CalendarDays, MapPin } from "lucide-react";
-import { getBookings } from "@/api/homeApi";
 import { toast } from "sonner";
+import axios from "axios";
+import { cancelBooking, getBookings } from "@/api/bookingApi";
+import { formatDateTime } from "@/components/dayFormat";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Bookings() {
+  const [open, setOpen] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState(null);
+  const fetchBookings = async () => {
+    try {
+      const bookings = await getBookings();
+      setBookings(bookings);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const bookings = await getBookings();
-        setBookings(bookings);
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to load bookings");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
   }, []);
 
@@ -45,8 +59,34 @@ export default function Bookings() {
     );
   }
 
+  const cancelBook = async (bookingId) => {
+    try {
+      setCancellingId(bookingId);
+
+      const updatedBooking = await cancelBooking(bookingId);
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === bookingId
+            ? {
+                ...booking,
+                status: "cancelled",
+                cancelledAt: new Date(),
+              }
+            : booking,
+        ),
+      );
+
+      toast.success("Booking cancelled");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to cancel booking");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="mx-auto w-full px-4 py-10 bg-yellow-200">
       <h1 className="mb-2 text-center text-5xl font-extrabold text-blue-600">
         My Bookings
       </h1>
@@ -55,11 +95,11 @@ export default function Bookings() {
         Manage your upcoming stays
       </p>
 
-      <div className="grid gap-8">
+      <div className="grid gap-8 justify-center">
         {bookings.map((booking) => (
           <div
             key={booking._id}
-            className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg"
+            className="overflow-hidden rounded-3xl border border-slate-200 shadow-lg bg-purple-300 lg:min-w-5xl"
           >
             <div className="grid md:grid-cols-[280px_1fr]">
               <img
@@ -67,7 +107,7 @@ export default function Bookings() {
                   booking.home?.photo || "https://via.placeholder.com/400x300"
                 }
                 alt={booking.home?.homeName}
-                className="h-full min-h-[220px] w-full object-cover"
+                className="h-full min-h-55 w-full object-cover"
               />
 
               <div className="p-6">
@@ -84,7 +124,7 @@ export default function Bookings() {
                   </div>
 
                   <span
-                    className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                    className={`rounded-full px-4 py-2 text-sm font-semibold capitalize ${
                       booking.status === "confirmed"
                         ? "bg-green-100 text-green-700"
                         : booking.status === "pending"
@@ -116,7 +156,7 @@ export default function Bookings() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-6 gap-2 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-slate-500">Total Amount</p>
 
@@ -125,10 +165,64 @@ export default function Bookings() {
                     </p>
                   </div>
 
-                  {booking.status !== "cancelled" && (
-                    <button className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600">
-                      Cancel Booking
-                    </button>
+                  <AlertDialog open={open} onOpenChange={setOpen}>
+                    <AlertDialogTrigger>
+                      {booking.status !== "cancelled" && (
+                        <div
+                          disabled={cancellingId === booking._id}
+                          className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
+                        >
+                          {cancellingId === booking._id ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              <span>Cancelling...</span>
+                            </div>
+                          ) : (
+                            "Cancel Booking"
+                          )}
+                        </div>
+                      )}
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Cancel this booking?
+                        </AlertDialogTitle>
+
+                        <AlertDialogDescription>
+                          This action cannot be undone. Your reservation for{" "}
+                          <span className="font-semibold text-green-400">
+                            {booking.home?.homeName}
+                          </span>{" "}
+                          will be cancelled.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="hover:cursor-pointer">
+                          Keep Booking
+                        </AlertDialogCancel>
+
+                        <AlertDialogAction
+                          onClick={() => {
+                            cancelBook(booking._id);
+                            setOpen(false);
+                          }}
+                          className="bg-red-500 hover:bg-red-600 hover:cursor-pointer"
+                        >
+                          Yes, Cancel Booking
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  {booking.status === "cancelled" && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                      <p className="text-sm font-medium text-red-600">
+                        Cancelled on {formatDateTime(booking.cancelledAt)}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
