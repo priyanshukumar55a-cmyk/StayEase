@@ -11,6 +11,7 @@ import {
   LogOut,
   House,
   Plus,
+  User,
   X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -31,7 +32,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b-2 border-gray-300 bg-slate-100 shadow-sm">
-      <div className="px-6 py-3 flex items-center justify-between">
+      <div className="px-6 py-1.5 md:py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-2xl font-extrabold text-blue-600">
           StayEase
@@ -93,6 +94,21 @@ export default function Navbar() {
                 </span>
               </NavLink>
             </>
+          )}
+
+          {isLoggedIn && (
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `${isActive ? active : normal}
+                px-4 py-2 rounded-full text-sm font-medium`
+              }
+            >
+              <span className="flex items-center gap-2">
+                <User size={16} />
+                Profile
+              </span>
+            </NavLink>
           )}
 
           {isLoggedIn && user?.userType === "host" && (
@@ -248,6 +264,19 @@ export default function Navbar() {
                     Bookings
                   </NavLink>
                 </>
+              )}
+
+              {isLoggedIn && (
+                <NavLink
+                  to="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `${isActive ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"} flex items-center gap-3 rounded-2xl px-4 py-3 transition`
+                  }
+                >
+                  <User size={18} />
+                  Profile
+                </NavLink>
               )}
 
               {isLoggedIn && user?.userType === "host" && (

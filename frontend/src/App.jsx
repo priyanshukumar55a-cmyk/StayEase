@@ -14,8 +14,10 @@ import HomesExplore from "./pages/HomeListExplore";
 import Favourites from "./pages/Favourites";
 import Bookings from "./pages/Bookings";
 import BookHome from "./pages/BookHome";
+import Profile from "./pages/Profile";
 import PublicRoute from "./auth/PublicRoute";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import EditProfile from "./pages/EditProfile";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -127,6 +129,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <BookHome />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile/edit",
+        element: (
+          <ProtectedRoute>
+            <EditProfile />
           </ProtectedRoute>
         ),
       },

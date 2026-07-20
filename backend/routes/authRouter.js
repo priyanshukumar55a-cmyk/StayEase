@@ -15,5 +15,6 @@ authRouter.get("/me", ensureAuth, (req, res) => {
         user:req.user
     })
 });
+authRouter.get("/profile", ensureAuth, authController.getProfile);
 
 module.exports = authRouter;

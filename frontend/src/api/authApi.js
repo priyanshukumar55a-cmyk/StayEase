@@ -19,3 +19,9 @@ export const logoutUser = async () => {
   const res = await API.post("/auth/logout");
   return res.data;
 };
+
+export const getProfile = async () => {
+  const res = await API.get("/auth/profile", { withCredentials: true });
+
+  return res.data;
+};

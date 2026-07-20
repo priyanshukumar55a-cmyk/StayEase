@@ -2,11 +2,44 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/user");
 const Host = require("../model/host");
+const Booking = require("../model/booking");
 const crypto = require("crypto");
 const transporter = require("../utils/mailer");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const generateToken = require("../utils/generateToken");
 
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+
+    const bookings = await Booking.countDocuments({
+      guest: req.user._id,
+    });
+
+    const confirmedBookings = await Booking.countDocuments({
+      guest: req.user._id,
+      status: "confirmed",
+    });
+
+    const cancelledBookings = await Booking.countDocuments({
+      guest: req.user._id,
+      status: "cancelled",
+    });
+
+    res.json({
+      user,
+      stats: {
+        bookings,
+        confirmedBookings,
+        cancelledBookings,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
 exports.postSignup = [
   check("firstName")
     .trim()

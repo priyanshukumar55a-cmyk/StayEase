@@ -2,6 +2,24 @@ const Booking = require("../model/booking");
 const Home = require("../model/home");
 const User = require("../model/user");
 
+const normalizeBookingDate = (value) => {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return new Date(value);
+  }
+
+  const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateOnlyPattern.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0);
+  }
+
+  return new Date(value);
+};
+
 exports.getHomes = async (req, res) => {
   try {
     const homes = await Home.find();
@@ -31,7 +49,7 @@ exports.getBookings = async (req, res) => {
     const bookings = await Booking.find({ guest: userId })
       .populate("home")
       .populate("host", "firstName lastName email")
-      .sort({ checkIn: -1 });
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -89,8 +107,8 @@ exports.postBookHome = async (req, res) => {
     const { checkIn, checkOut } = req.body;
 
     // Normalize and validate incoming dates to avoid invalid Date cast errors
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    const checkInDate = normalizeBookingDate(checkIn);
+    const checkOutDate = normalizeBookingDate(checkOut);
 
     if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
       return res.status(400).json({
@@ -266,12 +284,17 @@ exports.cancelBooking = async (req, res) => {
       });
     }
 
-    const hoursLeft =
-      (new Date(booking.checkIn) - Date.now()) / (1000 * 60 * 60);
+    const checkInDate = normalizeBookingDate(booking.checkIn);
+    const hoursLeft = (checkInDate.getTime() - Date.now()) / (1000 * 60 * 60);
 
     if (hoursLeft < 24) {
+      console.warn("[cancelBooking] cancellation blocked", {
+        bookingId: booking._id.toString(),
+        hoursLeft,
+      });
+
       return res.status(400).json({
-        message: "Booking can no longer be cancelled",
+        message: "You can only cancel up to 24 hours before check-in.",
       });
     }
 

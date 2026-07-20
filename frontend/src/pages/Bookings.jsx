@@ -18,6 +18,7 @@ import {
 
 export default function Bookings() {
   const [open, setOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
@@ -165,10 +166,17 @@ export default function Bookings() {
                     </p>
                   </div>
 
-                  <AlertDialog open={open} onOpenChange={setOpen}>
-                    <AlertDialogTrigger>
+                  <AlertDialog
+                    open={selectedBookingId === booking._id}
+                    onOpenChange={(isOpen) =>
+                      setSelectedBookingId(isOpen ? booking._id : null)
+                    }
+                  >
+                    <AlertDialogTrigger
+                      onClick={() => setSelectedBookingId(booking._id)}
+                    >
                       {booking.status !== "cancelled" && (
-                        <div
+                        <button
                           disabled={cancellingId === booking._id}
                           className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
                         >
@@ -180,7 +188,7 @@ export default function Bookings() {
                           ) : (
                             "Cancel Booking"
                           )}
-                        </div>
+                        </button>
                       )}
                     </AlertDialogTrigger>
 
@@ -207,7 +215,7 @@ export default function Bookings() {
                         <AlertDialogAction
                           onClick={() => {
                             cancelBook(booking._id);
-                            setOpen(false);
+                            setSelectedBookingId(null);
                           }}
                           className="bg-red-500 hover:bg-red-600 hover:cursor-pointer"
                         >
