@@ -86,12 +86,23 @@ exports.getHomeDetails = async (req, res) => {
 
 exports.postBookHome = async (req, res) => {
   try {
-    const { checkin, checkout } = req.body;
+    const { checkIn, checkOut } = req.body;
 
-    if (checkin > checkout) {
+    // Normalize and validate incoming dates to avoid invalid Date cast errors
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
       return res.status(400).json({
         success: false,
-        message: "Invalid dates",
+        message: "Invalid check-in or check-out date",
+      });
+    }
+
+    if (checkInDate >= checkOutDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Check-out date must be after check-in date",
       });
     }
 
@@ -110,8 +121,8 @@ exports.postBookHome = async (req, res) => {
 
       $or: [
         {
-          checkIn: { $lt: new Date(checkout) },
-          checkOut: { $gt: new Date(checkin) },
+          checkIn: { $lt: checkOutDate },
+          checkOut: { $gt: checkInDate },
         },
       ],
     });
@@ -123,10 +134,11 @@ exports.postBookHome = async (req, res) => {
       });
     }
 
-    const days =
-      Math.ceil(
-        (new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24),
-      ) || 1;
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const days = Math.max(
+      1,
+      Math.ceil((checkOutDate - checkInDate) / msPerDay),
+    );
 
     const totalPrice = days * home.price;
 
@@ -134,8 +146,8 @@ exports.postBookHome = async (req, res) => {
       guest: req.user._id,
       host: home.host,
       home: home._id,
-      checkIn: new Date(checkin),
-      checkOut: new Date(checkout),
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
       totalPrice,
     });
 
