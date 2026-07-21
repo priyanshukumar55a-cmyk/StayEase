@@ -96,7 +96,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
 
-                <Badge className="mt-3 md:mr-2 bg-green-500 hover:bg-emerald-500">
+                <Badge className="mt-3 mr-2 bg-green-500 hover:bg-emerald-500">
                   Active Member
                 </Badge>
                 <Badge

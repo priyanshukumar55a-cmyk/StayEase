@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -24,4 +24,18 @@ export const getProfile = async () => {
   const res = await API.get("/auth/profile", { withCredentials: true });
 
   return res.data;
+};
+
+export const updateProfile = async (data) => {
+  try {
+    const res = await API.patch("/auth/profile/edit", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };

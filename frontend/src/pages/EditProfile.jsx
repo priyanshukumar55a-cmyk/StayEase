@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { updateProfile } from "@/api/authApi";
+import { toast } from "sonner";
 
 export default function EditProfile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+  if (!user) return null;
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -40,11 +43,23 @@ export default function EditProfile() {
     e.preventDefault();
 
     try {
+      if (loading) return;
       setLoading(true);
+      const data = new FormData();
 
-      // API Call Here
+      data.append("firstName", formData.firstName);
+      data.append("lastName", formData.lastName);
+      data.append("bio", formData.bio);
+
+      if (image) {
+        data.append("profileImage", image);
+      }
+
+      const res = await updateProfile(data);
+      setUser(res.user);
+      toast.success("Profile updated successfully");
     } catch (error) {
-      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -62,7 +77,7 @@ export default function EditProfile() {
                 <div className="relative">
                   <Avatar className="h-28 w-28 border-2 border-rose-500">
                     <AvatarImage src={preview} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-rose-500 text-2xl font-bold text-white">
                       {user?.firstName?.[0]}
                       {user?.lastName?.[0]}
                     </AvatarFallback>
@@ -70,7 +85,7 @@ export default function EditProfile() {
 
                   <label
                     htmlFor="profileImage"
-                    className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-rose-500 p-2 text-white"
+                    className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-blue-400 p-2 text-white"
                   >
                     <Camera className="h-4 w-4" />
                   </label>
@@ -79,7 +94,7 @@ export default function EditProfile() {
                     id="profileImage"
                     type="file"
                     accept="image/*"
-                    className="hidden"
+                    className="hidden bg-amber-200"
                     onChange={handleImageChange}
                   />
                 </div>
@@ -92,6 +107,7 @@ export default function EditProfile() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
+                  className="text-white"
                 />
               </div>
 
@@ -102,6 +118,7 @@ export default function EditProfile() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
+                  className="text-white"
                 />
               </div>
 
@@ -114,10 +131,15 @@ export default function EditProfile() {
                   name="bio"
                   value={formData.bio}
                   onChange={handleChange}
+                  className="text-white"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full border border-amber-100"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
