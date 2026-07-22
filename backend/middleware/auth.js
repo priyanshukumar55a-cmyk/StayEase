@@ -31,6 +31,27 @@ exports.ensureAuth = async (req, res, next) => {
   }
 };
 
+exports.optionalAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+
+    if (!token) {
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (user) {
+      req.user = user;
+    }
+  } catch (err) {
+    // Ignore invalid or missing tokens so public routes can still work
+  }
+
+  next();
+};
+
 exports.ensureGuest = async (req, res, next) => {
   try {
     const token = req.cookies.token;

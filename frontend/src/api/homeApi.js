@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  // baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://localhost:3000",
   withCredentials: true,
 });
 
@@ -18,7 +19,7 @@ export const getHomes = async () => {
 export const getHomeDetails = async (homeId) => {
     try {
         const res = await API.get(`/homes/${homeId}`);
-        return res.data.home;
+        return res.data?.home ?? res.data;
     }
     catch (err) {
         console.error(err);

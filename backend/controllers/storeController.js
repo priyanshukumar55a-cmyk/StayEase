@@ -82,7 +82,10 @@ exports.getFavouriteList = async (req, res) => {
 
 exports.getHomeDetails = async (req, res) => {
   try {
-    const home = await Home.findById(req.params.homeId);
+    const home = await Home.findById(req.params.homeId).populate({
+      path: "host",
+      select: "firstName lastName email profilePhoto",
+    });
 
     if (!home) {
       return res.status(404).json({
@@ -91,14 +94,16 @@ exports.getHomeDetails = async (req, res) => {
       });
     }
     const isFavourite = req.user
-      ? req.user.favourites.includes(home._id)
+      ? req.user.favourites.some((id) => id.toString() === req.params.homeId)
       : false;
 
-    res.json({
-      ...home.toObject(),
-      isFavourite,
+    res.status(200).json({
+      success: true,
+      home: {
+        ...home.toObject(),
+        isFavourite,
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,

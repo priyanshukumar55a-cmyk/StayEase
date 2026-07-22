@@ -4,12 +4,12 @@ const express = require('express')
 //Local module
 const storeController = require("../controllers/storeController");
 const upload = require("../middleware/multer");
-const { ensureAuth } = require("../middleware/auth");
+const { ensureAuth, optionalAuth } = require("../middleware/auth");
 
 const storeRouter = express.Router();
 
-storeRouter.get("/homes", storeController.getHomes);
-storeRouter.get("/homes/:homeId", storeController.getHomeDetails)
+storeRouter.get("/homes", ensureAuth, storeController.getHomes);
+storeRouter.get("/homes/:homeId", optionalAuth, storeController.getHomeDetails)
 
 storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
 storeRouter.post("/homes/:homeId/book", ensureAuth, storeController.postBookHome);

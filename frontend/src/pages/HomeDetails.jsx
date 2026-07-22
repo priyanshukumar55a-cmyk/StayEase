@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { addHomeToFavourites, getHomeDetails, removeFavourite } from "@/api/homeApi";
+import {
+  addHomeToFavourites,
+  getHomeDetails,
+  removeFavourite,
+} from "@/api/homeApi";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
@@ -24,30 +28,30 @@ export default function HomeDetails() {
     try {
       const home = await getHomeDetails(homeId);
       setHome(home);
-      setIsFavourite(home?.isFavourite)
+      setIsFavourite(Boolean(home?.isFavourite));
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleFavourite = async() => {
+  const handleFavourite = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       if (isFavourite) {
         await removeFavourite(homeId);
-        setIsFavourite(false)
-        toast.success("Removed from wishlist")
+        setIsFavourite(false);
+        toast.success("Removed from wishlist");
       } else {
-        await addHomeToFavourites(homeId)
+        await addHomeToFavourites(homeId);
         setIsFavourite(true);
         toast.success("Added to wishlist");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!home) {
     return (
@@ -94,7 +98,7 @@ export default function HomeDetails() {
           <img
             src={home.photo}
             alt={home.homeName}
-            className="h-[500px] w-full object-cover"
+            className="h-100 md:h-125 w-full object-cover"
           />
 
           <button
