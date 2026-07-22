@@ -1,6 +1,7 @@
-const Booking = require("../model/booking");
 const Home = require("../model/home");
+const Booking = require("../model/booking");
 const User = require("../model/user");
+const Review = require("../model/review");
 
 const normalizeBookingDate = (value) => {
   if (value instanceof Date) {
@@ -89,11 +90,15 @@ exports.getHomeDetails = async (req, res) => {
         message: "Home not found",
       });
     }
+    const isFavourite = req.user
+      ? req.user.favourites.includes(home._id)
+      : false;
 
     res.json({
-      success: true,
-      home,
+      ...home.toObject(),
+      isFavourite,
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -235,6 +240,8 @@ exports.postRemoveFromFavourite = async (req, res) => {
 };
 
 const getCoordinates = require("../utils/geocode");
+const home = require("../model/home");
+const { default: mongoose } = require("mongoose");
 
 exports.createListing = async (req, res) => {
   try {
@@ -310,6 +317,109 @@ exports.cancelBooking = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       message: "Something went wrong",
+    });
+  }
+};
+
+exports.postReviewHome = async (req, res) => {
+  try {
+    const homeId = req.params.homeId;
+    const { rating, comment } = req.body;
+
+    const booking = await Booking.findOne({
+      home: homeId,
+      guest: req.user._id,
+      status: "confirmed",
+      checkOut: { $lt: new Date() },
+    });
+
+    if (!booking) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only review homes you have booked and stayed in.",
+      });
+    }
+
+    const existingReview = await Review.findOne({
+      guest: req.user._id,
+      home: homeId,
+    });
+
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already reviewed this home.",
+      });
+    }
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 1 and 5",
+      });
+    }
+    if (!comment?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment is required",
+      });
+    }
+
+    const review = await Review.create({
+      guest: req.user._id,
+      home: homeId,
+      rating,
+      comment,
+    });
+
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          home: new mongoose.Types.ObjectId(homeId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avg: { $avg: "$rating" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const home = await Home.findById(homeId);
+    if (home) {
+      home.averageRating = stats[0]?.avg || 0;
+      home.reviewCount = stats[0]?.count || 0;
+      await home.save();
+    }
+
+    res.status(201).json({
+      success: true,
+      review,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to add review",
+    });
+  }
+};
+
+exports.getHomeReviews = async (req, res) => {
+  try {
+    const homeId = req.params.homeId;
+    const reviews = await Review.find({
+      home: homeId,
+    })
+      .populate("guest", "firstName lastName profileImage")
+      .sort({ createdAt: -1 });
+
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch reviews",
     });
   }
 };

@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getHomeDetails } from "../api/homeApi";
+import { Link, useParams } from "react-router-dom";
+import { addHomeToFavourites, getHomeDetails, removeFavourite } from "@/api/homeApi";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
-import { Loader2 } from "lucide-react";
+
+import { Loader2, Star, Heart, MapPin, User } from "lucide-react";
+import { toast } from "sonner";
 
 export default function HomeDetails() {
   const { homeId } = useParams();
 
   const [home, setHome] = useState(null);
-  const [activeTab, setActiveTab] = useState("image");
+  const [loading, setLoading] = useState(false);
+  const [isFavourite, setIsFavourite] = useState(false);
 
   useEffect(() => {
     fetchHome();
@@ -21,16 +24,36 @@ export default function HomeDetails() {
     try {
       const res = await getHomeDetails(homeId);
       setHome(res);
+      setIsFavourite(res.isFavourite)
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
+  const handleFavourite = async() => {
+    try {
+      setLoading(true)
+      if (isFavourite) {
+        await removeFavourite(homeId);
+        setIsFavourite(false)
+        toast.success("Removed from wishlist")
+      } else {
+        await addHomeToFavourites(homeId)
+        setIsFavourite(true);
+        toast.success("Added to wishlist");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (!home) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
+      <div className="flex min-h-screen items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="text-2xl">Loading...</span>
       </div>
     );
   }
@@ -39,60 +62,97 @@ export default function HomeDetails() {
   const lng = home?.location?.coordinates?.[0];
 
   return (
-    <main className="min-h-screen bg-gray-50 flex justify-center px-4 py-6">
-      <div className="w-full max-w-4xl">
-        {/* Title */}
-        <h2 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-          {home.homeName}
-        </h2>
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="mb-3 text-4xl font-bold text-slate-900">
+            {home.homeName}
+          </h1>
 
-        <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden grid md:grid-cols-2 border border-gray-200">
-          {/* LEFT SECTION */}
-          <div className="h-64 md:h-full flex flex-col">
-            {/* Tabs */}
-            <div className="flex gap-2 p-2 bg-gray-100">
-              <button
-                onClick={() => setActiveTab("image")}
-                className={`px-4 py-2 rounded font-semibold shadow ${
-                  activeTab === "image"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Image
-              </button>
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-semibold">
+                {home.averageRating?.toFixed(1) || "New"}
+              </span>
 
-              <button
-                onClick={() => setActiveTab("map")}
-                className={`px-4 py-2 rounded font-semibold shadow ${
-                  activeTab === "map"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Map
-              </button>
+              <span className="text-slate-500">
+                ({home.reviewCount || 0} reviews)
+              </span>
             </div>
 
-            {/* Image */}
-            {activeTab === "image" && (
-              <div className="flex-1 overflow-hidden">
-                <img
-                  src={home.photo || "https://via.placeholder.com/400x300"}
-                  alt={home.homeName}
-                  className="w-full h-full object-cover hover:scale-105 transition duration-300"
-                />
+            <div className="flex items-center gap-1 text-slate-600">
+              <MapPin className="h-4 w-4" />
+              {home.address}
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Image */}
+        <div className="relative mb-8 overflow-hidden rounded-3xl shadow-xl">
+          <img
+            src={home.photo}
+            alt={home.homeName}
+            className="h-[500px] w-full object-cover"
+          />
+
+          <button
+            onClick={handleFavourite}
+            className="absolute right-4 top-4 rounded-full bg-white p-3 shadow-lg transition hover:scale-110 hover:cursor-pointer"
+          >
+            <Heart
+              className={`h-6 w-6 transition-all duration-300 ${
+                isFavourite
+                  ? "fill-red-500 text-red-500 scale-110"
+                  : "text-slate-500"
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid gap-8 lg:grid-cols-[1fr_350px]">
+          {/* Left */}
+          <div>
+            {/* Description */}
+            <section className="rounded-2xl bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-2xl font-bold">About this place</h2>
+
+              <p className="leading-8 text-slate-600">{home.description}</p>
+            </section>
+
+            {/* Amenities */}
+            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl font-bold">Amenities</h2>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-slate-100 p-4">
+                  🏠 Entire Home
+                </div>
+
+                <div className="rounded-xl bg-slate-100 p-4">📶 Free WiFi</div>
+
+                <div className="rounded-xl bg-slate-100 p-4">
+                  🚿 Private Bathroom
+                </div>
+
+                <div className="rounded-xl bg-slate-100 p-4">
+                  🚗 Free Parking
+                </div>
               </div>
-            )}
+            </section>
 
             {/* Map */}
-            {activeTab === "map" && (
-              <div className="flex-1 h-[400px]">
-                {lat && lng ? (
+            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl font-bold">Location</h2>
+
+              {lat && lng ? (
+                <div className="overflow-hidden rounded-2xl">
                   <MapContainer
                     center={[lat, lng]}
                     zoom={13}
-                    className="h-full w-full"
+                    className="h-[400px] w-full"
                   >
                     <TileLayer
                       attribution="&copy; OpenStreetMap contributors"
@@ -106,44 +166,86 @@ export default function HomeDetails() {
                       </Popup>
                     </Marker>
                   </MapContainer>
-                ) : (
-                  <div className="h-full flex justify-center items-center text-red-500">
-                    Location not available
-                  </div>
-                )}
+                </div>
+              ) : (
+                <p className="text-red-500">Location not available</p>
+              )}
+            </section>
+
+            {/* Reviews */}
+            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl font-bold">Reviews</h2>
+
+              <div className="rounded-xl border border-dashed p-8 text-center text-slate-500">
+                No reviews yet.
               </div>
-            )}
+
+              {/* Later replace with reviews.map() */}
+            </section>
           </div>
 
-          {/* RIGHT SECTION */}
-          <div className="p-6 flex flex-col justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                {home.homeName}
-              </h2>
-
-              <p className="text-gray-600 text-sm mb-2">📍 {home.address}</p>
-
-              <p className="text-yellow-500 font-semibold text-sm mb-2">
-                ⭐ {home.rating} / 5
-              </p>
-
-              <p className="text-2xl font-bold text-gray-900 mb-4">
-                ₹{home.price}
-                <span className="text-gray-500 text-sm font-normal">
-                  {" "}
-                  / night
+          {/* Right Sidebar */}
+          <div>
+            <div className="sticky top-24 rounded-3xl bg-white p-6 shadow-xl">
+              <div className="mb-5">
+                <span className="text-4xl font-extrabold text-emerald-600">
+                  ₹{home.price}
                 </span>
-              </p>
 
-              <p className="text-gray-600 text-sm">{home.description}</p>
-            </div>
+                <span className="ml-1 text-slate-500">/ night</span>
+              </div>
 
-            {/* Favourite Button */}
-            <div className="mt-4">
-              <button className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition">
-                Add to Favourite
+              <button className="mb-3 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3 font-semibold text-white transition hover:scale-[1.02] hover:cursor-pointer">
+                <Link to={`/homes/${homeId}/book`}>Book Now</Link>
               </button>
+
+              <button
+                disabled={loading}
+                onClick={handleFavourite}
+                className={`w-full rounded-xl py-3 font-semibold transition hover:cursor-pointer ${
+                  isFavourite
+                    ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                    : "border hover:bg-slate-100"
+                }`}
+              >
+                {isFavourite
+                  ? loading
+                    ? "Removing from Wishlist..."
+                    : "Remove from Wishlist"
+                  : loading
+                    ? "Adding to Wishlist..."
+                    : "Add to Wishlist"}
+              </button>
+
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-slate-100 p-3">
+                    <User className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <p className="font-semibold">
+                      Hosted by {home.host?.firstName || "Host"}
+                    </p>
+
+                    <p className="text-sm text-slate-500">Verified Host</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+
+                  <span className="font-semibold">
+                    {home.averageRating?.toFixed(1) || "New"}
+                  </span>
+
+                  <span className="text-slate-500">
+                    ({home.reviewCount || 0} reviews)
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

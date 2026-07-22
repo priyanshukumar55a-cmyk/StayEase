@@ -9,13 +9,24 @@ const { ensureAuth } = require("../middleware/auth");
 const storeRouter = express.Router();
 
 storeRouter.get("/homes", storeController.getHomes);
-storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
-storeRouter.get("/favourites", ensureAuth, storeController.getFavouriteList);
 storeRouter.get("/homes/:homeId", storeController.getHomeDetails)
+
+storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
 storeRouter.post("/homes/:homeId/book", ensureAuth, storeController.postBookHome);
-storeRouter.patch("/bookings/:bookingId/cancel", ensureAuth, storeController.cancelBooking);
+
+storeRouter.get("/favourites", ensureAuth, storeController.getFavouriteList);
 storeRouter.post("/favourites/:homeId", ensureAuth, storeController.postAddToFavourite);
 storeRouter.post("/favourite/delete/:homeId", ensureAuth, storeController.postRemoveFromFavourite);
+
+storeRouter.get("/homes/:homeId/reviews", storeController.getHomeReviews)
+storeRouter.post("/homes/:homeId/reviews", ensureAuth, storeController.postReviewHome);
+// storeRouter.patch("/reviews/:reviewId", ensureAuth, storeController.editReview);
+// storeRouter.delete(
+//   "/reviews/:reviewId",
+//   ensureAuth,
+//   storeController.deleteReview,
+// );
+storeRouter.patch("/bookings/:bookingId/cancel", ensureAuth, storeController.cancelBooking);
 
 storeRouter.post("/upload", upload.single("image"), (req, res) => {
     console.log('Upload route - file object:', req.file);

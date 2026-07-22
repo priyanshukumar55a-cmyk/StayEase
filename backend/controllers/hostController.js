@@ -1,6 +1,8 @@
 const Home = require("../model/home");
 const User = require("../model/user");
 const Host = require("../model/host");
+const Booking = require("../model/booking");
+const Review = require("../model/review");
 const getCoordinates = require("../utils/geocode");
 const cloudinary = require("../config/cloudinary");
 
@@ -26,10 +28,12 @@ exports.getHostHomes = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const host = await Host.findOne({ user: userId }).populate("homes");
+    const homes = await Home.find({
+      host: userId,
+    });
 
     res.status(200).json({
-      homes: host ? host.homes : [],
+      homes,
     });
   } catch (err) {
     res.status(500).json({
@@ -40,7 +44,7 @@ exports.getHostHomes = async (req, res) => {
 
 exports.postAddHome = async (req, res) => {
   try {
-    const { homeName, price, address, rating, description } = req.body;
+    const { homeName, price, address, description } = req.body;
 
     if (
       !homeName?.trim() ||
@@ -50,6 +54,11 @@ exports.postAddHome = async (req, res) => {
     ) {
       return res.status(400).json({
         message: "Please fill in all required fields",
+      });
+    }
+    if (Number(price) <= 0) {
+      return res.status(400).json({
+        message: "Price must be greater than 0",
       });
     }
 
@@ -79,7 +88,6 @@ exports.postAddHome = async (req, res) => {
         type: "Point",
         coordinates: [coords.lng, coords.lat],
       },
-      rating,
       photo,
       photoPublicId,
       description,
@@ -93,7 +101,10 @@ exports.postAddHome = async (req, res) => {
       if (!host) {
         host = new Host({ user: userId, homes: [home._id] });
       } else {
-        host.homes.push(home._id);
+        await Host.updateMany(
+          { user: userId },
+          { $addToSet: { homes: home._id } },
+        );
       }
       await host.save();
     }
@@ -129,7 +140,7 @@ exports.getEditHome = async (req, res) => {
 };
 
 exports.postEditHome = async (req, res) => {
-  const { id, homeId, homeName, price, address, rating, description } = req.body;
+  const { id, homeId, homeName, price, address, description } = req.body;
   const targetHomeId = id || homeId;
 
   if (
@@ -137,7 +148,6 @@ exports.postEditHome = async (req, res) => {
     !homeName?.trim() ||
     !price ||
     !address?.trim() ||
-    !rating ||
     !description?.trim()
   ) {
     return res
@@ -150,11 +160,15 @@ exports.postEditHome = async (req, res) => {
     if (!home) {
       return res.status(404).json({ message: "Home not found" });
     }
+    if (home.host.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
 
     home.homeName = homeName;
     home.price = price;
     home.address = address;
-    home.rating = rating;
 
     let coords;
     try {
@@ -218,9 +232,14 @@ exports.postDeleteHome = async (req, res) => {
     const home = await Home.findById(homeId);
 
     if (!home) {
-        res.status(500).json({
-          message: "Home not found"
-        });
+      res.status(404).json({
+        message: "Home not found",
+      });
+    }
+    if (home.host.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
     }
 
     // attempt to delete the image from Cloudinary
@@ -250,6 +269,13 @@ exports.postDeleteHome = async (req, res) => {
       { favourites: homeId },
       { $pull: { favourites: homeId } },
     );
+
+    await Booking.deleteMany({
+      home: homeId,
+    });
+    await Review.deleteMany({
+      home: homeId,
+    });
 
     // Remove reference from the Host document for this user (if any)
     const userId = req.user?._id;

@@ -137,7 +137,7 @@ export default function EditProfile() {
 
               <Button
                 type="submit"
-                className="w-full border border-amber-100"
+                className="w-full border border-amber-100 hover:cursor-pointer hover:bg-green-600"
                 disabled={loading}
               >
                 {loading ? (

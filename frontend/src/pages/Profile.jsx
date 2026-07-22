@@ -71,9 +71,12 @@ export default function ProfilePage() {
         <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur">
           <CardContent className="p-4">
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-center">
-              <Avatar className="h-20 w-20 border-2 border-rose-500">
-                <AvatarImage src={user.profileImage} />
-                <AvatarFallback className="bg-rose-500 text-2xl font-bold text-white">
+              <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-rose-500 shadow-lg">
+                <AvatarImage
+                  className="overflow-hidden"
+                  src={user.profileImage}
+                />
+                <AvatarFallback className="bg-rose-500 text-4xl font-bold text-white">
                   {user.firstName?.[0]}
                   {user.lastName?.[0]}
                 </AvatarFallback>
@@ -109,15 +112,13 @@ export default function ProfilePage() {
                 >
                   {user.isVerified ? "Verified" : "Unverified"}
                 </Badge>
-                {user.bio.trim.length !== 0 ? (
-                  <p className="mt-2 max-w-xl text-sm text-zinc-300">
-                    {user.bio}
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm italic text-zinc-500">
-                    No bio added yet.
-                  </p>
-                )}
+                <p
+                  className={`mt-2 text-sm ${
+                    user.bio?.trim() ? "text-zinc-300" : "italic text-zinc-500"
+                  }`}
+                >
+                  {user.bio?.trim() || "No bio added yet."}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -138,7 +139,7 @@ export default function ProfilePage() {
             <CardContent className="flex flex-col items-center p-6">
               <Heart className="mb-2 h-8 w-8 text-pink-400" />
               <h3 className="text-3xl font-bold text-white">
-                {user.favourites.length}
+                {user.favourites?.length || 0}
               </h3>
               <p className="text-zinc-400">Wishlist</p>
             </CardContent>

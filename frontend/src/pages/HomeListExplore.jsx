@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { addHomeToFavourites, getHomes } from "@/api/homeApi";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import HomeMap from "./HomeMap";
 import { toast } from "sonner";
 
@@ -111,9 +111,10 @@ export default function HomesExplore() {
                 📍 {home.address || "Location not available"}
               </p>
 
-              <p className="mb-2 text-sm font-bold text-amber-500">
-                ⭐ {home.rating} / 5
-              </p>
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span>
+                {home.averageRating?.toFixed(1)} ({home.reviewCount} Reviews)
+              </span>
 
               <p className="mb-4 text-lg font-bold text-emerald-600">
                 ₹{home.price}

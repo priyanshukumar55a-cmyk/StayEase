@@ -1,12 +1,18 @@
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button, Input } from "@base-ui/react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Form, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AddHome({ editing = false, home = {} }) {
+  const [preview, setPreview] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const { homeId } = useParams();
@@ -15,12 +21,16 @@ export default function AddHome({ editing = false, home = {} }) {
     homeName: "",
     price: "",
     address: "",
-    rating: "",
     description: "",
   });
 
-  const [photo, setPhoto] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setPhoto(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
   useEffect(() => {
     if (!editing) return;
@@ -31,11 +41,12 @@ export default function AddHome({ editing = false, home = {} }) {
           withCredentials: true,
         });
 
+        setPreview(res.data.photo);
+
         setFormData({
           homeName: res.data.homeName || "",
           price: res.data.price || "",
           address: res.data.address || "",
-          rating: res.data.rating || "",
           description: res.data.description || "",
         });
       } catch (error) {
@@ -51,10 +62,6 @@ export default function AddHome({ editing = false, home = {} }) {
       ...prev,
       [e.target.name]: e.target.value,
     }));
-  };
-
-  const handleFileChange = (e) => {
-    setPhoto(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -104,8 +111,8 @@ export default function AddHome({ editing = false, home = {} }) {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-white">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-300">
+    <main className="min-h-screen flex items-center justify-center px-4 bg-blue-300">
+      <Card className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-xl border border-gray-300 my-5">
         <h1 className="text-3xl font-extrabold bg-gradient-to-r from-fuchsia-600 via-blue-600 to-cyan-400 bg-clip-text text-transparent text-center mb-2 drop-shadow">
           🏡 {editing ? "Edit" : "Add"} Your Home
         </h1>
@@ -115,32 +122,47 @@ export default function AddHome({ editing = false, home = {} }) {
           <span className="text-pink-500">start earning!</span>
         </p>
 
-        <form
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="h-60 w-full rounded-xl object-cover"
+          />
+        )}
+
+        <Form
           onSubmit={handleSubmit}
           encType="multipart/form-data"
           className="space-y-4"
         >
-          <input
-            type="text"
-            name="homeName"
-            value={formData.homeName}
-            onChange={handleChange}
-            placeholder="Enter your house name"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-          />
+          <div className="grid md:grid-cols-2 gap-4">
+            <Input
+              type="text"
+              name="homeName"
+              value={formData.homeName}
+              onChange={handleChange}
+              placeholder="Enter your house name"
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            />
 
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            placeholder="Price Per Night"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-          />
+            <div className="relative">
+              <span className="absolute left-2 right-1/2 top-1/2 -translate-y-1/2">
+                ₹
+              </span>
+              <Input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="Price Per Night"
+                required
+                className="w-full pl-5 py-2 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+              />
+            </div>
+          </div>
 
-          <input
+          <Input
             type="text"
             name="address"
             value={formData.address}
@@ -150,20 +172,7 @@ export default function AddHome({ editing = false, home = {} }) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
 
-          <input
-            type="number"
-            min="1"
-            max="5"
-            step="0.1"
-            name="rating"
-            value={formData.rating}
-            onChange={handleChange}
-            placeholder="Rating (1-5)"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-          />
-
-          <input
+          <Input
             type="file"
             name="photo"
             required={!editing}
@@ -172,7 +181,7 @@ export default function AddHome({ editing = false, home = {} }) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
 
-          <textarea
+          <Textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -180,9 +189,12 @@ export default function AddHome({ editing = false, home = {} }) {
             required
             rows={4}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-          />
+          ></Textarea>
+          <p className="text-right text-xs text-zinc-500">
+            {formData.description.length}/500
+          </p>
 
-          <button
+          <Button
             disabled={loading}
             type="submit"
             className="w-full bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 text-white py-2 rounded-lg font-extrabold shadow-lg hover:from-pink-500 hover:to-indigo-600 hover:scale-105 transition-all duration-300 cursor-pointer tracking-wide text-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -197,9 +209,9 @@ export default function AddHome({ editing = false, home = {} }) {
             ) : (
               "Add Home"
             )}
-          </button>
-        </form>
-      </div>
+          </Button>
+        </Form>
+      </Card>
     </main>
   );
 }
