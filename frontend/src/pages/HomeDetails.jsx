@@ -22,9 +22,9 @@ export default function HomeDetails() {
 
   const fetchHome = async () => {
     try {
-      const res = await getHomeDetails(homeId);
-      setHome(res);
-      setIsFavourite(res.isFavourite)
+      const home = await getHomeDetails(homeId);
+      setHome(home);
+      setIsFavourite(home?.isFavourite)
     } catch (err) {
       console.error(err);
     }
