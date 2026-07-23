@@ -156,7 +156,7 @@ export default function HomeDetails() {
                   <MapContainer
                     center={[lat, lng]}
                     zoom={13}
-                    className="h-[400px] w-full"
+                    className="h-100 w-full"
                   >
                     <TileLayer
                       attribution="&copy; OpenStreetMap contributors"

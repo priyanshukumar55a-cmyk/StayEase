@@ -31,7 +31,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b-2 border-gray-300 bg-slate-100 shadow-sm">
+    <header className="sticky top-0 z-1000 border-b-2 border-gray-300 bg-slate-100 shadow-sm">
       <div className="px-6 py-1.5 md:py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-2xl font-extrabold text-blue-600">
