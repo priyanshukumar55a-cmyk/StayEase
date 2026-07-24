@@ -420,11 +420,58 @@ exports.getHomeReviews = async (req, res) => {
       .populate("guest", "firstName lastName profileImage")
       .sort({ createdAt: -1 });
 
-    res.json(reviews);
+    res.status(200).json({
+      success: true,
+      reviews,
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to fetch reviews",
+    });
+  }
+};
+
+exports.canReviewHome = async (req, res) => {
+  try {
+    const { homeId } = req.params;
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      home: homeId,
+      guest: req.user._id,
+      status: "confirmed",
+      checkOut: { $lt: new Date() },
+    });
+
+    if (!booking) {
+      return res.json({
+        success: true,
+        canReview: false,
+        alreadyReviewed:false,
+      })
+    }
+
+    const existingReview = await Review.exists({
+      home: homeId,
+      guest:req.user._id
+    })
+
+    return res.json({
+      success: true,
+      canReview: !existingReview,
+      alreadyReviewed: !!existingReview,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

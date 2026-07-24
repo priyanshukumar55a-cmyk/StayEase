@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   addHomeToFavourites,
+  getCanReview,
   getHomeDetails,
+  getHomeReviews,
   removeFavourite,
 } from "@/api/homeApi";
 
@@ -17,11 +19,15 @@ export default function HomeDetails() {
   const { homeId } = useParams();
 
   const [home, setHome] = useState(null);
+  const [reviews, setReviews] = useState(null);
+  const [canReview, setCanReview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isFavourite, setIsFavourite] = useState(false);
 
   useEffect(() => {
     fetchHome();
+    fetchReviews();
+    fetchCanReview();
   }, [homeId]);
 
   const fetchHome = async () => {
@@ -33,6 +39,22 @@ export default function HomeDetails() {
       console.error(err);
     }
   };
+  const fetchReviews = async () => {
+    try {
+      const data = await getHomeReviews(homeId);
+      setReviews(data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+  const fetchCanReview = async () => {
+    try {
+      const res = await getCanReview(homeId);
+      setCanReview(res.canReview);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   const handleFavourite = async () => {
     try {
@@ -98,7 +120,7 @@ export default function HomeDetails() {
           <img
             src={home.photo}
             alt={home.homeName}
-            className="h-100 md:h-125 w-full object-cover"
+            className="h-100 md:h-145 w-full object-cover"
           />
 
           <button
@@ -178,13 +200,41 @@ export default function HomeDetails() {
 
             {/* Reviews */}
             <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl font-bold">Reviews</h2>
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Reviews</h2>
 
-              <div className="rounded-xl border border-dashed p-8 text-center text-slate-500">
-                No reviews yet.
+                {canReview && <Link
+                  to={`/homes/${homeId}/review`}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                >
+                  Write Review
+                </Link>}
               </div>
 
-              {/* Later replace with reviews.map() */}
+              {reviews.length === 0 ? (
+                <div className="rounded-xl border border-dashed p-8 text-center text-slate-500">
+                  No reviews yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review._id} className="rounded-xl border p-5">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">
+                          {review.guest.firstName} {review.guest.lastName}
+                        </h3>
+
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          {review.rating}
+                        </div>
+                      </div>
+
+                      <p className="mt-3 text-slate-600">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
 

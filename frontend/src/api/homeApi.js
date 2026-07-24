@@ -66,3 +66,33 @@ export const bookHome = async (homeId, bookingData) => {
     throw err;
   }
 };
+
+export const getHomeReviews = async (homeId) => {
+  try {
+    const res = await API.get(`/homes/${homeId}/reviews`);
+    return res.data.reviews;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export const getCanReview = async (homeId) => {
+  try {
+    const res = await API.get(`/homes/${homeId}/can-review`);
+    return res.data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export const postReview = async (homeId, review) => {
+  try {
+    const res = await API.post(`/homes/${homeId}/reviews`, review);
+    return res.data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}

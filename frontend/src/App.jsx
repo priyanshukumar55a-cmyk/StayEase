@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import PublicRoute from "./auth/PublicRoute";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import EditProfile from "./pages/EditProfile";
+import ReviewPage from "./pages/ReviewPage";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -145,6 +146,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EditProfile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/homes/:homeId/review",
+        element: (
+          <ProtectedRoute>
+            <ReviewPage />
           </ProtectedRoute>
         ),
       },
