@@ -8,7 +8,7 @@ const { ensureAuth, optionalAuth } = require("../middleware/auth");
 
 const storeRouter = express.Router();
 
-storeRouter.get("/homes", ensureAuth, storeController.getHomes);
+storeRouter.get("/homes", storeController.getHomes);
 storeRouter.get("/homes/:homeId", optionalAuth, storeController.getHomeDetails);
 
 storeRouter.get("/bookings", ensureAuth, storeController.getBookings);

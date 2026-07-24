@@ -4,7 +4,7 @@ import HomePage from "./pages/HomePage";
 import HomeDetails from "./pages/HomeDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Navbar from "./pages/NavBar";
+import Navbar from "./components/NavBar";
 import { Toaster } from "sonner";
 import AddHome from "./pages/Host/AddHome";
 import HostHomes from "./pages/Host/HostHomes";
@@ -85,7 +85,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/host",
+        path: "/host/homes",
         element: (
           <ProtectedRoute>
             <HostHomes />
