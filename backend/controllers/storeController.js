@@ -406,7 +406,7 @@ exports.postReviewHome = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Failed to add review",
+      message: err.message,
     });
   }
 };
@@ -420,9 +420,15 @@ exports.getHomeReviews = async (req, res) => {
       .populate("guest", "firstName lastName profileImage")
       .sort({ createdAt: -1 });
 
+    const formattedReviews = reviews.map((review) => ({
+      ...review.toObject(),
+      isOwner:
+        req.user && review.guest._id.toString() === req.user._id.toString(),
+    }));
+
     res.status(200).json({
       success: true,
-      reviews,
+      reviews: formattedReviews,
     });
   } catch (err) {
     res.status(500).json({
@@ -454,14 +460,14 @@ exports.canReviewHome = async (req, res) => {
       return res.json({
         success: true,
         canReview: false,
-        alreadyReviewed:false,
-      })
+        alreadyReviewed: false,
+      });
     }
 
     const existingReview = await Review.exists({
       home: homeId,
-      guest:req.user._id
-    })
+      guest: req.user._id,
+    });
 
     return res.json({
       success: true,
@@ -472,6 +478,137 @@ exports.canReviewHome = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+exports.deleteReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+
+    const review = await Review.findById(reviewId);
+
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+
+    if (review.guest.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this review.",
+      });
+    }
+
+    const homeId = review.home;
+
+    await Review.findByIdAndDelete(reviewId);
+
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          home: new mongoose.Types.ObjectId(homeId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avg: { $avg: "$rating" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    await Home.findByIdAndUpdate(homeId, {
+      averageRating: stats[0]?.avg || 0,
+      reviewCount: stats[0]?.count || 0,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Review deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.editReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { rating, comment } = req.body;
+
+    const review = await Review.findById(reviewId);
+
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+
+    if (review.guest.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this review.",
+      });
+    }
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 1 and 5",
+      });
+    }
+
+    if (!comment?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment is required",
+      });
+    }
+
+    review.rating = rating;
+    review.comment = comment.trim();
+
+    await review.save();
+
+    // Update home's average rating
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          home: review.home,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avg: { $avg: "$rating" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    await Home.findByIdAndUpdate(review.home, {
+      averageRating: stats[0]?.avg || 0,
+      reviewCount: stats[0]?.count || 0,
+    });
+
+    res.json({
+      success: true,
+      review,
+      message: "Review updated successfully",
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
     });
   }
 };

@@ -45,12 +45,12 @@ storeRouter.post(
   ensureAuth,
   storeController.postReviewHome,
 );
-// storeRouter.patch("/reviews/:reviewId", ensureAuth, storeController.editReview);
-// storeRouter.delete(
-//   "/reviews/:reviewId",
-//   ensureAuth,
-//   storeController.deleteReview,
-// );
+storeRouter.patch("/reviews/:reviewId", ensureAuth, storeController.editReview);
+storeRouter.delete(
+  "/reviews/:reviewId",
+  ensureAuth,
+  storeController.deleteReview,
+);
 storeRouter.patch(
   "/bookings/:bookingId/cancel",
   ensureAuth,

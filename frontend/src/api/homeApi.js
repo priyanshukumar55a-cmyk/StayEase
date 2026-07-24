@@ -1,30 +1,29 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  // baseURL: "http://localhost:3000",
+  // baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://localhost:3000",
   withCredentials: true,
 });
 
 export const getHomes = async () => {
-    try {
-        const res = await API.get("/homes");
-        return res.data.homes;
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
+  try {
+    const res = await API.get("/homes");
+    return res.data.homes;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
 
 export const getHomeDetails = async (homeId) => {
-    try {
-        const res = await API.get(`/homes/${homeId}`);
-        return res.data?.home ?? res.data;
-    }
-    catch (err) {
-        console.error(err);
-        throw err;
-    }
+  try {
+    const res = await API.get(`/homes/${homeId}`);
+    return res.data?.home ?? res.data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
 
 export const getFavouriteHomes = async () => {
@@ -75,7 +74,7 @@ export const getHomeReviews = async (homeId) => {
     console.error(err);
     throw err;
   }
-}
+};
 
 export const getCanReview = async (homeId) => {
   try {
@@ -85,7 +84,7 @@ export const getCanReview = async (homeId) => {
     console.error(err);
     throw err;
   }
-}
+};
 
 export const postReview = async (homeId, review) => {
   try {
@@ -95,4 +94,14 @@ export const postReview = async (homeId, review) => {
     console.error(err);
     throw err;
   }
+};
+
+export const deleteMyReview = async (reviewId) => {
+  const res = await API.delete(`/reviews/${reviewId}`);
+  return res.data;
+};
+
+export const editReview = async (reviewId, reviewData) => {
+  const res = await API.patch(`/reviews/${reviewId}`, reviewData);
+  return res.data;
 }

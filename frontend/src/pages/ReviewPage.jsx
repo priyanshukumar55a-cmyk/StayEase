@@ -122,10 +122,14 @@ export default function ReviewPage() {
           <textarea
             rows={6}
             value={comment}
+            maxLength={500}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Share your experience..."
             className="w-full rounded-xl border p-4 outline-none focus:border-indigo-500"
           />
+          <div className="mt-2 text-right text-sm text-slate-500">
+            {comment.length}/500 characters
+          </div>
         </div>
 
         <div className="flex justify-end gap-4">

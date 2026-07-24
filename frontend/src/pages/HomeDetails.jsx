@@ -2,11 +2,23 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   addHomeToFavourites,
+  deleteMyReview,
+  editReview,
   getCanReview,
   getHomeDetails,
   getHomeReviews,
   removeFavourite,
 } from "@/api/homeApi";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
@@ -14,15 +26,31 @@ import "leaflet/dist/leaflet.css";
 
 import { Loader2, Star, Heart, MapPin, User } from "lucide-react";
 import { toast } from "sonner";
+import ReviewsModal from "@/components/ReviewsModal";
+import { Button } from "@base-ui/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function HomeDetails() {
   const { homeId } = useParams();
 
-  const [home, setHome] = useState(null);
-  const [reviews, setReviews] = useState(null);
+  const [home, setHome] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [canReview, setCanReview] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingReview, setLoadingReview] = useState(true);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [deleteReview, setDeleteReview] = useState(null);
+
+  const [editingReview, setEditingReview] = useState(null);
+  const [editRating, setEditRating] = useState(0);
+  const [editComment, setEditComment] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchHome();
@@ -42,11 +70,13 @@ export default function HomeDetails() {
   const fetchReviews = async () => {
     try {
       const data = await getHomeReviews(homeId);
-      setReviews(data)
+      setReviews(data || []);
     } catch (err) {
-      console.error(err)
+      console.error(err);
+    } finally {
+      setLoadingReview(false);
     }
-  }
+  };
   const fetchCanReview = async () => {
     try {
       const res = await getCanReview(homeId);
@@ -54,7 +84,7 @@ export default function HomeDetails() {
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
   const handleFavourite = async () => {
     try {
@@ -75,7 +105,38 @@ export default function HomeDetails() {
     }
   };
 
-  if (!home) {
+  const handleDeleteReview = async () => {
+    try {
+      const data = await deleteMyReview(deleteReview._id);
+      toast.success("Review deleted successfully");
+      setDeleteReview(null);
+
+      fetchReviews();
+      fetchHome();
+      fetchCanReview();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
+  };
+  const handleEditReview = async () => {
+    try {
+      setSaving(true);
+      await editReview(editingReview._id, {
+        rating: editRating,
+        comment: editComment,
+      });
+      toast.success("Review updated");
+      setEditingReview(null);
+      fetchReviews();
+      fetchHome();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update review");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!home || loadingReview) {
     return (
       <div className="flex min-h-screen items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -201,14 +262,18 @@ export default function HomeDetails() {
             {/* Reviews */}
             <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Reviews</h2>
+                <h2 className="text-2xl font-bold">
+                  Reviews ({reviews.length})
+                </h2>
 
-                {canReview && <Link
-                  to={`/homes/${homeId}/review`}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-                >
-                  Write Review
-                </Link>}
+                {canReview && (
+                  <Link
+                    to={`/homes/${homeId}/review`}
+                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                  >
+                    Write Review
+                  </Link>
+                )}
               </div>
 
               {reviews.length === 0 ? (
@@ -217,20 +282,94 @@ export default function HomeDetails() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review._id} className="rounded-xl border p-5">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">
-                          {review.guest.firstName} {review.guest.lastName}
-                        </h3>
+                  {reviews?.map((review) => (
+                    <div
+                      key={review._id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-md transition hover:shadow-lg"
+                    >
+                      <ReviewsModal
+                        review={review}
+                        setDeleteReview={setDeleteReview}
+                        setEditingReview={setEditingReview}
+                      />
+                      <AlertDialog
+                        open={!!deleteReview}
+                        onOpenChange={(open) => {
+                          if (!open) setDeleteReview(null);
+                        }}
+                      >
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Review?</AlertDialogTitle>
 
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          {review.rating}
-                        </div>
-                      </div>
+                            <AlertDialogDescription>
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
 
-                      <p className="mt-3 text-slate-600">{review.comment}</p>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="hover:cursor-pointer">
+                              Cancel
+                            </AlertDialogCancel>
+
+                            <AlertDialogAction
+                              onClick={handleDeleteReview}
+                              className="bg-red-600 hover:bg-red-700 hover:cursor-pointer"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <Dialog
+                        open={!!editingReview}
+                        onOpenChange={(open) => !open && setEditingReview(null)}
+                      >
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Review</DialogTitle>
+                          </DialogHeader>
+
+                          {/* Rating */}
+                          <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                onClick={() => setEditRating(star)}
+                                className={`cursor-pointer ${
+                                  star <= editRating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          <Textarea
+                            value={editComment}
+                            maxLength={500}
+                            onChange={(e) => setEditComment(e.target.value)}
+                          />
+                          <div className="text-right text-sm text-slate-500">
+                            {editComment.length}/500 characters
+                          </div>
+
+                          <Button
+                            disabled={saving}
+                            onClick={handleEditReview}
+                            className="hover:cursor-pointer border border-gray-500 rounded-2xl py-1 bg-green-200 hover:bg-green-300"
+                          >
+                            {saving ? (
+                              <>
+                                <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                                Saving Changes...
+                              </>
+                            ) : (
+                              "Save Changes"
+                            )}
+                          </Button>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   ))}
                 </div>
