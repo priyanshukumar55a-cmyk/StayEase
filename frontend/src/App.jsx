@@ -19,6 +19,7 @@ import PublicRoute from "./auth/PublicRoute";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import EditProfile from "./pages/EditProfile";
 import ReviewPage from "./pages/ReviewPage";
+import HostDashboard from "./components/HostDashboard";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -154,6 +155,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ReviewPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/host/dashboard",
+        element: (
+          <ProtectedRoute>
+            <HostDashboard />
           </ProtectedRoute>
         ),
       },
