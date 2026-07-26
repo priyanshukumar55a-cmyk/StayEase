@@ -6,3 +6,10 @@ export const formatDateTime = (date) =>
     hour: "2-digit",
     minute: "2-digit",
   });
+
+export const formatDate = (date) =>
+  new Date(date).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });

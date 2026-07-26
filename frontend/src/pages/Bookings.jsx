@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2, CalendarDays, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
 import { cancelBooking, getBookings } from "@/api/bookingApi";
 import { formatDateTime } from "@/components/dayFormat";
 import {
@@ -17,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Bookings() {
-  const [open, setOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,13 +85,13 @@ export default function Bookings() {
   };
 
   return (
-    <main className="mx-auto w-full px-4 py-10 bg-yellow-200">
+    <main className="mx-auto h-full w-full px-4 py-10 ">
       <h1 className="mb-2 text-center text-5xl font-extrabold text-blue-600">
         My Bookings
       </h1>
 
       <p className="mb-10 text-center text-slate-600">
-        Manage your upcoming stays
+        Track your booking requests and upcoming stays
       </p>
 
       <div className="grid gap-8 justify-center">
@@ -102,7 +100,7 @@ export default function Bookings() {
             key={booking._id}
             className="overflow-hidden rounded-3xl border border-slate-200 shadow-lg bg-purple-300 lg:min-w-5xl"
           >
-            <div className="grid md:grid-cols-[280px_1fr]">
+            <div className="grid lg:grid-cols-[400px_1fr] ">
               <img
                 src={
                   booking.home?.photo || "https://via.placeholder.com/400x300"
@@ -112,6 +110,14 @@ export default function Bookings() {
               />
 
               <div className="p-6">
+                <div className="flex justify-between mb-1">
+                  <div className="mt-1 text-sm text-slate-500">
+                    Booking ID: #{booking._id.slice(-8).toUpperCase()}
+                  </div>
+                  <div className="text-sm text-slate-500">
+                    Requested on {formatDateTime(booking.createdAt)}
+                  </div>
+                </div>
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-900">
@@ -123,19 +129,67 @@ export default function Bookings() {
                       {booking.home?.address}
                     </p>
                   </div>
-
+                  <p className="mt-2 text-md text-slate-500">
+                    Host: {booking.host.firstName} {booking.host.lastName}
+                  </p>
                   <span
                     className={`rounded-full px-4 py-2 text-sm font-semibold capitalize ${
                       booking.status === "confirmed"
                         ? "bg-green-100 text-green-700"
                         : booking.status === "pending"
                           ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
+                          : booking.status === "declined"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {booking.status}
                   </span>
                 </div>
+                {booking.status === "pending" && (
+                  <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-3">
+                    <p className="text-sm text-yellow-700">
+                      ⏳ Your booking request has been sent to the host. You'll
+                      be notified once they accept or decline it.
+                    </p>
+                  </div>
+                )}
+
+                {booking.status === "confirmed" && (
+                  <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3">
+                    <p className="text-sm text-green-700">
+                      ✅ Your booking has been confirmed by the host. We hope
+                      you enjoy your stay!
+                    </p>
+                  </div>
+                )}
+
+                {booking.status === "declined" && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm text-red-700">
+                      ❌ Unfortunately the host declined your booking request.
+                    </p>
+                  </div>
+                )}
+
+                {booking.status === "cancelled" && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm text-red-700">
+                      This booking was cancelled by you.
+                    </p>
+                  </div>
+                )}
+                {booking.status === "confirmed" && (
+                  <div className="mt-5 rounded-xl bg-green-50 border border-green-200 p-4">
+                    <p className="font-semibold text-green-700">
+                      Booking Confirmed 🎉
+                    </p>
+
+                    <p className="text-sm text-slate-600 mt-1">
+                      Please arrive on your check-in date.
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   <div className="rounded-xl bg-slate-100 p-4">
@@ -166,64 +220,67 @@ export default function Bookings() {
                     </p>
                   </div>
 
-                  <AlertDialog
-                    open={selectedBookingId === booking._id}
-                    onOpenChange={(isOpen) =>
-                      setSelectedBookingId(isOpen ? booking._id : null)
-                    }
-                  >
-                    <AlertDialogTrigger
-                      onClick={() => setSelectedBookingId(booking._id)}
+                  {(booking.status === "pending" ||
+                    booking.status === "confirmed") && (
+                    <AlertDialog
+                      open={selectedBookingId === booking._id}
+                      onOpenChange={(isOpen) =>
+                        setSelectedBookingId(isOpen ? booking._id : null)
+                      }
                     >
-                      {booking.status !== "cancelled" && (
-                        <button
-                          disabled={cancellingId === booking._id}
-                          className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
-                        >
-                          {cancellingId === booking._id ? (
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                              <span>Cancelling...</span>
-                            </div>
-                          ) : (
-                            "Cancel Booking"
-                          )}
-                        </button>
-                      )}
-                    </AlertDialogTrigger>
+                      <AlertDialogTrigger
+                        onClick={() => setSelectedBookingId(booking._id)}
+                      >
+                        {booking.status !== "cancelled" && (
+                          <button
+                            disabled={cancellingId === booking._id}
+                            className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
+                          >
+                            {cancellingId === booking._id ? (
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span>Cancelling...</span>
+                              </div>
+                            ) : (
+                              "Cancel Booking"
+                            )}
+                          </button>
+                        )}
+                      </AlertDialogTrigger>
 
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Cancel this booking?
-                        </AlertDialogTitle>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Cancel this booking?
+                          </AlertDialogTitle>
 
-                        <AlertDialogDescription>
-                          This action cannot be undone. Your reservation for{" "}
-                          <span className="font-semibold text-green-400">
-                            {booking.home?.homeName}
-                          </span>{" "}
-                          will be cancelled.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
+                          <AlertDialogDescription>
+                            This action cannot be undone. Your reservation for{" "}
+                            <span className="font-semibold text-green-400">
+                              {booking.home?.homeName}
+                            </span>{" "}
+                            will be cancelled.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
 
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="hover:cursor-pointer">
-                          Keep Booking
-                        </AlertDialogCancel>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="hover:cursor-pointer">
+                            Keep Booking
+                          </AlertDialogCancel>
 
-                        <AlertDialogAction
-                          onClick={() => {
-                            cancelBook(booking._id);
-                            setSelectedBookingId(null);
-                          }}
-                          className="bg-red-500 hover:bg-red-600 hover:cursor-pointer"
-                        >
-                          Yes, Cancel Booking
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <AlertDialogAction
+                            onClick={() => {
+                              cancelBook(booking._id);
+                              setSelectedBookingId(null);
+                            }}
+                            className="bg-red-500 hover:bg-red-600 hover:cursor-pointer"
+                          >
+                            Yes, Cancel Booking
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
 
                   {booking.status === "cancelled" && (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
@@ -232,6 +289,13 @@ export default function Bookings() {
                       </p>
                     </div>
                   )}
+                  {/* {booking.status === "declined" && booking.declinedAt && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                      <p className="text-sm font-medium text-red-600">
+                        Declined on {formatDateTime(booking.declinedAt)}
+                      </p>
+                    </div>
+                  )} */}
                 </div>
               </div>
             </div>

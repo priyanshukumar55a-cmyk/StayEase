@@ -9,44 +9,78 @@ import {
   ArrowRight,
   ClipboardList,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { getHostDashboardStats } from "@/api/hostApi";
+import { formatDateTime } from "./dayFormat";
 
 export default function HostDashboard() {
-  const stats = {
-    listings: 8,
-    bookings: 14,
-    earnings: 48500,
-    rating: 4.8,
-    reviews: 96,
-    occupancy: "82%",
+  const { user } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await getHostDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
+        <span className="text-3xl text-black/80">Loading...</span>
+      </div>
+    );
+  }
+
+  const recentBookings = stats.recentBookings;
+
+  const statusStyles = {
+    pending: "bg-yellow-100 text-yellow-700",
+    confirmed: "bg-green-100 text-green-700",
+    cancelled: "bg-red-100 text-red-700",
   };
 
-  const recentBookings = [
-    {
-      id: 1,
-      guest: "Rahul Sharma",
-      home: "Lake View Villa",
-      checkIn: "25 Jul",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      guest: "Priya Singh",
-      home: "Mountain Cottage",
-      checkIn: "29 Jul",
-      status: "Confirmed",
-    },
-    {
-      id: 3,
-      guest: "Amit Kumar",
-      home: "City Apartment",
-      checkIn: "3 Aug",
-      status: "Pending",
-    },
-  ];
+  if (stats.totalListings === 0) {
+    return (
+      <div className="flex bg-amber-300 min-h-[91vh] items-center justify-center px-6">
+        <Card className="max-w-lg text-center shadow-xl">
+          <CardContent className="space-y-5 p-10">
+            <House className="mx-auto h-14 w-14 text-blue-600" />
+
+            <h2 className="text-3xl font-bold">Welcome to StayEase Hosting</h2>
+
+            <p className="text-slate-600">
+              You haven't listed any properties yet. Create your first listing
+              and start receiving booking requests.
+            </p>
+
+            <Link to="/host/add-home">
+              <Button className="w-full bg-green-400 h-10 hover:cursor-pointer hover:bg-green-500">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Your First Listing
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -55,7 +89,9 @@ export default function HostDashboard() {
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white">Welcome back 👋</h1>
+              <h1 className="text-4xl font-bold text-white">
+                Welcome back, {user.firstName} 👋
+              </h1>
 
               <p className="mt-2 text-blue-100">
                 Manage your properties, bookings and earnings from one place.
@@ -79,37 +115,48 @@ export default function HostDashboard() {
           <StatCard
             icon={<House className="text-blue-600" />}
             title="Total Listings"
-            value={stats.listings}
+            value={stats.totalListings}
           />
 
           <StatCard
             icon={<CalendarDays className="text-purple-600" />}
-            title="Active Bookings"
-            value={stats.bookings}
+            title="Total Bookings"
+            value={stats.totalBookings}
+          />
+
+          <StatCard
+            icon={<CalendarDays className="text-purple-600" />}
+            title="Pending Requests"
+            value={stats.pendingBookings}
+            subtitle={
+              stats.pendingBookings === 0
+                ? "No pending requests"
+                : "Waiting for approval"
+            }
+          />
+
+          <StatCard
+            icon={<CalendarDays className="text-purple-600" />}
+            title="Cancelled Bookings"
+            value={stats.cancelledBookings}
           />
 
           <StatCard
             icon={<IndianRupee className="text-green-600" />}
             title="Total Earnings"
-            value={`₹${stats.earnings.toLocaleString()}`}
+            value={`₹${stats.totalRevenue.toLocaleString()}`}
           />
 
           <StatCard
             icon={<Star className="text-yellow-500" />}
             title="Average Rating"
-            value={stats.rating}
+            value={stats.averageRating}
           />
 
           <StatCard
             icon={<MessageSquare className="text-pink-600" />}
             title="Reviews"
-            value={stats.reviews}
-          />
-
-          <StatCard
-            icon={<TrendingUp className="text-emerald-600" />}
-            title="Occupancy"
-            value={stats.occupancy}
+            value={stats.totalReviews}
           />
         </div>
 
@@ -158,38 +205,71 @@ export default function HostDashboard() {
               </div>
 
               <div className="space-y-4">
-                {recentBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="rounded-xl border p-4 transition hover:bg-slate-50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">{booking.guest}</h3>
+                {recentBookings.length === 0 ? (
+                  <div className="flex h-52 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 text-center">
+                    <CalendarDays className="mb-3 h-12 w-12 text-slate-400" />
 
-                        <p className="text-sm text-slate-500">{booking.home}</p>
+                    <h3 className="font-semibold text-slate-700">
+                      No booking requests yet
+                    </h3>
 
-                        <p className="mt-1 text-xs text-slate-400">
-                          Check-in: {booking.checkIn}
-                        </p>
-                      </div>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          booking.status === "Confirmed"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
-                    </div>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Booking requests from guests will appear here.
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  recentBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      className="rounded-xl border p-4 transition hover:bg-slate-50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold">
+                            {booking.guest.firstName} {booking.guest.lastName}
+                          </h3>
+
+                          <p className="text-sm text-slate-500">
+                            {booking.home.homeName}
+                          </p>
+
+                          <p className="mt-1 text-xs text-slate-400">
+                            Check-in: {formatDateTime(booking.checkIn)}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            statusStyles[booking.status]
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
 
+          {/* Performance */}
+
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="mb-5 text-xl font-bold">Reviews</h2>
+
+              <div className="flex h-60 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300">
+                <MessageSquare className="mb-3 h-12 w-12 text-slate-400" />
+
+                <h3 className="font-semibold">No reviews yet</h3>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Guest reviews will appear here after completed stays.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
           {/* Performance */}
 
           <Card>
@@ -213,7 +293,7 @@ export default function HostDashboard() {
   );
 }
 
-function StatCard({ icon, title, value }) {
+function StatCard({ icon, title, value, subtitle }) {
   return (
     <Card className="transition hover:-translate-y-1 hover:shadow-xl">
       <CardContent className="flex items-center gap-4 p-6">
@@ -221,8 +301,10 @@ function StatCard({ icon, title, value }) {
 
         <div>
           <p className="text-sm text-slate-500">{title}</p>
-
           <h3 className="text-3xl font-bold">{value}</h3>
+          {subtitle && (
+            <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+          )}
         </div>
       </CardContent>
     </Card>

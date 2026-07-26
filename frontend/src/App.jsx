@@ -13,13 +13,15 @@ import VerifyEmail from "./auth/VerifyEmail";
 import HomesExplore from "./pages/HomeListExplore";
 import Favourites from "./pages/Favourites";
 import Bookings from "./pages/Bookings";
-import BookHome from "./pages/BookHome";
+import BookingRequest from "./pages/BookingRequest";
 import Profile from "./pages/Profile";
 import PublicRoute from "./auth/PublicRoute";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import EditProfile from "./pages/EditProfile";
 import ReviewPage from "./pages/ReviewPage";
 import HostDashboard from "./components/HostDashboard";
+import BookingRequests from "./pages/Host/HostBookings";
+import HostBookings from "./pages/Host/HostBookings";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -130,7 +132,7 @@ const router = createBrowserRouter([
         path: "/homes/:homeId/book",
         element: (
           <ProtectedRoute>
-            <BookHome />
+            <BookingRequest />
           </ProtectedRoute>
         ),
       },
@@ -163,6 +165,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <HostDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/host/bookings",
+        element: (
+          <ProtectedRoute>
+            <HostBookings />
           </ProtectedRoute>
         ),
       },

@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { Form, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL;
-// const API_URL ="http://localhost:3000";
+// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL ="http://localhost:3000";
 
 export default function AddHome({ editing = false, home = {} }) {
   const [preview, setPreview] = useState("");
@@ -98,7 +98,7 @@ export default function AddHome({ editing = false, home = {} }) {
           (editing ? "Home updated successfully" : "Home added successfully"),
       );
       setTimeout(() => {
-        navigate("/host");
+        navigate("/host/homes");
       }, 1000);
     } catch (err) {
       console.error(err);
@@ -190,6 +190,7 @@ export default function AddHome({ editing = false, home = {} }) {
             required
             rows={4}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            maxLength={500}
           ></Textarea>
           <p className="text-right text-xs text-zinc-500">
             {formData.description.length}/500

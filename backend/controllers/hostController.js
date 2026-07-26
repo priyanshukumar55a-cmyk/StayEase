@@ -5,6 +5,7 @@ const Booking = require("../model/booking");
 const Review = require("../model/review");
 const getCoordinates = require("../utils/geocode");
 const cloudinary = require("../config/cloudinary");
+const review = require("../model/review");
 
 // Helper to extract Cloudinary public id from a delivered URL as a fallback
 function extractPublicIdFromUrl(url) {
@@ -292,6 +293,89 @@ exports.postDeleteHome = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       message: err.message,
+    });
+  }
+};
+
+exports.getHostDashboardStats = async (req, res) => {
+  try {
+    const hostId = req.user._id;
+
+    const homes = await Home.find({ host: hostId }).select("_id status");
+
+    const homeIds = homes.map((home) => home._id);
+
+    const [
+      totalBookings,
+      pendingBookings,
+      confirmedBookings,
+      cancelledBookings,
+      reviews,
+      bookings,
+    ] = await Promise.all([
+      Booking.countDocuments({ host: hostId }),
+      Booking.countDocuments({
+        host: hostId,
+        status: "pending",
+      }),
+      Booking.countDocuments({
+        host: hostId,
+        status: "confirmed",
+      }),
+      Booking.countDocuments({
+        host: hostId,
+        status: "cancelled",
+      }),
+      Review.find({
+        home: { $in: homeIds },
+      }).select("rating"),
+      Booking.find({
+        host: hostId,
+        status: "confirmed",
+      }).select("totalPrice"),
+    ]);
+
+    const totalRevenue = bookings.reduce(
+      (sum, booking) => sum + booking.totalPrice,
+      0,
+    );
+
+    const averageRating =
+      reviews.length === 0
+        ? 0
+        : (
+            reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviews.length
+          ).toFixed(1);
+
+    const totalReviews = reviews.length;
+
+    const recentBookings = await Booking.find({
+      home: { $in: homeIds },
+    })
+      .populate("guest", "firstName lastName")
+      .populate("home", "homeName")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.status(200).json({
+      totalListings: homes.length,
+
+      totalBookings,
+      pendingBookings,
+      confirmedBookings,
+      cancelledBookings,
+
+      totalReviews,
+      totalRevenue,
+      averageRating,
+
+      recentBookings
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch dashboard statistics.",
     });
   }
 };

@@ -4,10 +4,10 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
-// const API_URL = "http://localhost:3000";
+// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "http://localhost:3000";
 
 export default function HostHomes() {
   const [openedMap, setOpenedMap] = useState(null);
@@ -140,17 +140,27 @@ export default function HostHomes() {
                   📍 {home.address || "Location not available"}
                 </p>
 
-                <p className="text-yellow-500 text-sm font-semibold mb-2">
-                  ⭐ {home.rating} / 5
-                </p>
+                {/* Reviews */}
+                <div className="mt-3 flex items-center gap-2">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
 
-                <p className="text-gray-900 font-semibold text-lg mb-4">
-                  ₹{home.price}
-                  <span className="text-gray-500 text-sm font-normal">
-                    {" "}
-                    / night
+                  <span className="font-medium text-slate-800">
+                    {home.averageRating?.toFixed(1) || "0.0"}
                   </span>
-                </p>
+
+                  <span className="text-sm text-slate-500">
+                    ({home.reviewCount || 0} reviews)
+                  </span>
+                </div>
+
+                {/* Price */}
+                <div className="my-4">
+                  <span className="text-3xl font-extrabold text-emerald-600">
+                    ₹{home.price}
+                  </span>
+
+                  <span className="ml-1 text-sm text-slate-500">/ night</span>
+                </div>
 
                 {/* Edit */}
                 <Link

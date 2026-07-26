@@ -24,5 +24,11 @@ hostRouter.post(
     hostController.postEditHome
 );
 hostRouter.delete("/delete-home/:homeId", ensureAuth, ensureHost, hostController.postDeleteHome);
+hostRouter.get(
+  "/dashboard",
+  ensureAuth,
+  ensureHost,
+  hostController.getHostDashboardStats,
+);
 
 module.exports = hostRouter;
