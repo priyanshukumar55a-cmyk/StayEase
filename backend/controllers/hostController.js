@@ -379,3 +379,58 @@ exports.getHostDashboardStats = async (req, res) => {
     });
   }
 };
+
+exports.getBookings = async (req, res) => {
+  try {
+    const hostId = req.user._id;
+    const { status = "all", search = "" } = req.query;
+    
+    const filter = {
+      host: hostId,
+    };
+
+    if (status !== "all") {
+      filter.status = status;
+    }
+
+    let bookings = await Booking.find(filter)
+      .populate({
+        path: "guest",
+        select: "firstName lastName email profileImage"
+      })
+      .populate({
+        path: "home",
+        select: "homeName photo address"
+      })
+      .sort({ createdAt: -1 });
+    
+    const stats = {
+      total: await Booking.countDocuments({ host: hostId }),
+      pending: await Booking.countDocuments({
+        host: hostId,
+        status: "pending",
+      }),
+      confirmed: await Booking.countDocuments({
+        host: hostId,
+        status: "confirmed",
+      }),
+      cancelled: await Booking.countDocuments({
+        host: hostId,
+        status: "cancelled",
+      }),
+    }
+
+    res.status(200).json({
+      success: true,
+      stats,
+      bookings,
+    })
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch booking requests.",
+    });
+  }
+}

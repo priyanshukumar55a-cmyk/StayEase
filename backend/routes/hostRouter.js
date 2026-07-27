@@ -8,27 +8,43 @@ const hostController = require("../controllers/hostController");
 const { ensureAuth, ensureHost } = require("../middleware/auth");
 
 hostRouter.post(
-    "/add-home",
-    ensureAuth,
-    ensureHost,
-    upload.single("photo"),
-    hostController.postAddHome
+  "/add-home",
+  ensureAuth,
+  ensureHost,
+  upload.single("photo"),
+  hostController.postAddHome,
 );
 hostRouter.get("/homes", ensureAuth, ensureHost, hostController.getHostHomes);
-hostRouter.get("/edit-home/:homeId", ensureAuth, ensureHost, hostController.getEditHome);
-hostRouter.post(
-    "/edit-home",
-    ensureAuth,
-    ensureHost,
-    upload.single("photo"),
-    hostController.postEditHome
+hostRouter.get(
+  "/edit-home/:homeId",
+  ensureAuth,
+  ensureHost,
+  hostController.getEditHome,
 );
-hostRouter.delete("/delete-home/:homeId", ensureAuth, ensureHost, hostController.postDeleteHome);
+hostRouter.post(
+  "/edit-home",
+  ensureAuth,
+  ensureHost,
+  upload.single("photo"),
+  hostController.postEditHome,
+);
+hostRouter.delete(
+  "/delete-home/:homeId",
+  ensureAuth,
+  ensureHost,
+  hostController.postDeleteHome,
+);
 hostRouter.get(
   "/dashboard",
   ensureAuth,
   ensureHost,
   hostController.getHostDashboardStats,
+);
+hostRouter.get(
+  "/bookings",
+  ensureAuth,
+  ensureHost,
+  hostController.getBookings,
 );
 
 module.exports = hostRouter;

@@ -1,23 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarDays,
   Search,
   Clock3,
   CheckCircle2,
   XCircle,
+  ArrowLeft,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { getHostBookings } from "@/api/hostApi";
+import BookingsCards from "@/components/BookingsCards";
 
 export default function HostBookings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [bookings, setBookings] = useState([]);
+  const navigate = useNavigate();
 
-  const stats = {
-    pending: 6,
-    confirmed: 18,
-    cancelled: 4,
+  useEffect(() => {
+    fetchBookings(statusFilter);
+  }, [statusFilter]);
+
+  const [stats, setStats] = useState({
+    pending: 0,
+    confirmed: 0,
+    cancelled: 0,
+  });
+
+  const fetchBookings = async (status) => {
+    try {
+      const data = await getHostBookings(status);
+
+      setBookings(data.bookings);
+
+      setStats(data.stats);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filterButtons = [
@@ -43,7 +65,13 @@ export default function HostBookings() {
     <main className="min-h-screen bg-slate-100">
       {/* Hero */}
 
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700">
+      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700">
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute p-2 bg-white rounded-xl hover:cursor-pointer left-2 md:top-1/6 top-1/12 -translate-y-1/2 "
+        >
+          <ArrowLeft />
+        </button>
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -129,7 +157,8 @@ export default function HostBookings() {
           </div>
         </div>
 
-        {/* Booking Cards will start here */}
+        {/* Booking Cards */}
+        <BookingsCards bookings={bookings} statusFilter={statusFilter} />
       </div>
     </main>
   );

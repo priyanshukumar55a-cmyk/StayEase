@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { Form, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-// const API_URL = import.meta.env.VITE_API_URL;
-const API_URL ="http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL ="http://localhost:3000";
 
 export default function AddHome({ editing = false, home = {} }) {
   const [preview, setPreview] = useState("");
