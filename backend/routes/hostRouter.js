@@ -46,5 +46,6 @@ hostRouter.get(
   ensureHost,
   hostController.getBookings,
 );
+hostRouter.patch("/bookings/:bookingId", ensureAuth, ensureHost, hostController.updateBookingStatus);  
 
 module.exports = hostRouter;

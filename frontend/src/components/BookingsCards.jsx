@@ -1,8 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { CalendarDays } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
-const BookingsCards = ({ bookings, statusFilter }) => {
+const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
+  const [acceptDialogBookingId, setAcceptDialogBookingId] = useState(null);
+  const [rejectDialogBookingId, setRejectDialogBookingId] = useState(null);
+
   return (
     <div className="mt-8 space-y-6">
       {bookings.length === 0 ? (
@@ -16,7 +29,7 @@ const BookingsCards = ({ bookings, statusFilter }) => {
 
             <p className="mt-2 text-slate-500">
               There are no {statusFilter !== "all" ? statusFilter : ""} booking
-              requests.
+              requests. Try changing your filters or search query.
             </p>
           </CardContent>
         </Card>
@@ -33,7 +46,7 @@ const BookingsCards = ({ bookings, statusFilter }) => {
                 <img
                   src={booking.home.photo}
                   alt={booking.home.homeName}
-                  className="h-52 w-full rounded-xl object-cover lg:h-44 lg:w-64"
+                  className="h-62 md:h-76 w-full rounded-xl object-cover lg:h-44 lg:w-64"
                 />
 
                 {/* Details */}
@@ -66,10 +79,10 @@ const BookingsCards = ({ bookings, statusFilter }) => {
 
                   {/* Guest */}
 
-                  <div className="mt-6 flex items-center gap-4">
+                  <div className="mt-6 flex items-center gap-2 md:gap-4">
                     <img
                       src={booking.guest.profileImage || "/default-avatar.png"}
-                      className="h-14 w-14 rounded-full object-cover"
+                      className="h-10 w-10 md:h-14 md:w-14 rounded-full object-cover"
                     />
 
                     <div>
@@ -102,15 +115,93 @@ const BookingsCards = ({ bookings, statusFilter }) => {
                   {/* Actions */}
 
                   {booking.status === "pending" && (
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <button className="rounded-xl bg-green-600 px-6 py-2 font-semibold text-white transition hover:bg-green-700">
-                        Accept
-                      </button>
+                    <>
+                      <AlertDialog
+                        open={acceptDialogBookingId === booking._id}
+                        onOpenChange={(open) => {
+                          if (!open) setAcceptDialogBookingId(null);
+                        }}
+                      >
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Accept booking request?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Confirm that you want to accept this booking. The
+                              guest will be notified and the request will be
+                              finalized.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
 
-                      <button className="rounded-xl bg-red-600 px-6 py-2 font-semibold text-white transition hover:bg-red-700">
-                        Reject
-                      </button>
-                    </div>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="hover:cursor-pointer">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                onStatusChange(booking._id, "confirmed");
+                                setAcceptDialogBookingId(null);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 hover:cursor-pointer"
+                            >
+                              Accept
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <AlertDialog
+                        open={rejectDialogBookingId === booking._id}
+                        onOpenChange={(open) => {
+                          if (!open) setRejectDialogBookingId(null);
+                        }}
+                      >
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Reject booking request?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Confirm that you want to decline this booking. The
+                              guest will be notified and the request will be
+                              marked as declined.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="hover:cursor-pointer">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                onStatusChange(booking._id, "declined");
+                                setRejectDialogBookingId(null);
+                              }}
+                              className="bg-red-600 hover:bg-red-700 hover:cursor-pointer"
+                            >
+                              Reject
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <div className="mt-6 flex flex-wrap gap-3">
+                        <button
+                          onClick={() => setAcceptDialogBookingId(booking._id)}
+                          className="rounded-xl bg-green-600 px-6 py-2 font-semibold text-white transition hover:bg-green-700 hover:cursor-pointer"
+                        >
+                          Accept
+                        </button>
+
+                        <button
+                          onClick={() => setRejectDialogBookingId(booking._id)}
+                          className="rounded-xl bg-red-600 px-6 py-2 font-semibold text-white transition hover:bg-red-700 hover:cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </>
                   )}
 
                   {booking.status === "confirmed" && (
@@ -122,6 +213,11 @@ const BookingsCards = ({ bookings, statusFilter }) => {
                   {booking.status === "cancelled" && (
                     <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 font-medium text-red-700">
                       ✕ This booking has been cancelled.
+                    </div>
+                  )}
+                  {booking.status === "declined" && (
+                    <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 font-medium text-red-700">
+                      ✕ This booking request was declined.
                     </div>
                   )}
                 </div>

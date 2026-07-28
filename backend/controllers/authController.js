@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const transporter = require("../utils/mailer");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const generateToken = require("../utils/generateToken");
+const { ReturnDocument } = require("mongodb");
 
 exports.getProfile = async (req, res) => {
   try {
@@ -54,7 +55,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, {
-      new: true,
+      ReturnDocument: "after",
     }).select("-password");
 
     res.json({

@@ -370,7 +370,7 @@ exports.getHostDashboardStats = async (req, res) => {
       totalRevenue,
       averageRating,
 
-      recentBookings
+      recentBookings,
     });
   } catch (error) {
     console.error(error);
@@ -384,7 +384,7 @@ exports.getBookings = async (req, res) => {
   try {
     const hostId = req.user._id;
     const { status = "all", search = "" } = req.query;
-    
+
     const filter = {
       host: hostId,
     };
@@ -396,14 +396,26 @@ exports.getBookings = async (req, res) => {
     let bookings = await Booking.find(filter)
       .populate({
         path: "guest",
-        select: "firstName lastName email profileImage"
+        select: "firstName lastName email profileImage",
       })
       .populate({
         path: "home",
-        select: "homeName photo address"
+        select: "homeName photo address",
       })
       .sort({ createdAt: -1 });
-    
+
+    if (search.trim()) {
+      const keyWord = search.toLowerCase();
+
+      bookings = bookings.filter((booking) => {
+        const guestName =
+          `${booking.guest.firstName} ${booking.guest.lastName}`.toLowerCase();
+        const homeName = booking.home.homeName.toLowerCase();
+
+        return guestName.includes(keyWord) || homeName.includes(keyWord);
+      });
+    }
+
     const stats = {
       total: await Booking.countDocuments({ host: hostId }),
       pending: await Booking.countDocuments({
@@ -418,13 +430,13 @@ exports.getBookings = async (req, res) => {
         host: hostId,
         status: "cancelled",
       }),
-    }
+    };
 
     res.status(200).json({
       success: true,
       stats,
       bookings,
-    })
+    });
   } catch (err) {
     console.error(err);
 
@@ -433,4 +445,58 @@ exports.getBookings = async (req, res) => {
       message: "Failed to fetch booking requests.",
     });
   }
-}
+};
+
+exports.updateBookingStatus = async (req, res) => {
+  const hostId = req.user._id;
+  const { bookingId } = req.params;
+  const { status } = req.body;
+
+  if (!["confirmed", "declined"].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid status value.",
+    });
+  }
+  try {
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found.",
+      });
+    }
+
+    if (booking.host.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized.",
+      });
+    }
+
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Booking has already been ${booking.status}.`,
+      });
+    }
+
+    booking.status = status;
+
+    await booking.save();
+    res.status(200).json({
+      message:
+        status === "confirmed"
+          ? "Booking accepted successfully."
+          : "Booking request declined successfully.",
+      booking,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update booking status.",
+    });
+  }
+};

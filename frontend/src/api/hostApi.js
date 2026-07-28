@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-//   baseURL: "http://localhost:3000",
+  // baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://localhost:3000",
   withCredentials: true,
 });
 
@@ -11,10 +11,18 @@ export const getHostDashboardStats = async () => {
   return res.data;
 };
 
-export const getHostBookings = async (status) => {
+export const getHostBookings = async (status, search) => {
     const res = await API.get(
-        `/host/bookings?status=${status}`
+        `/host/bookings?status=${status}&search=${search}`
     )
 
     return res.data;
+}
+
+export const updateBookingRequest = async (bookingId, status) => {
+  const res = await API.patch(`/host/bookings/${bookingId}`, {
+    status,
+  })
+
+  return res.data;
 }

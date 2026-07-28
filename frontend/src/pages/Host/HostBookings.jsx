@@ -1,28 +1,56 @@
-import { useEffect, useState } from "react";
-import {
-  CalendarDays,
-  Search,
-  Clock3,
-  CheckCircle2,
-  XCircle,
-  ArrowLeft,
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Search, Clock3, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { getHostBookings } from "@/api/hostApi";
+import { getHostBookings, updateBookingRequest } from "@/api/hostApi";
 import BookingsCards from "@/components/BookingsCards";
+import BookingCardSkeleton from "@/components/skeletons/BookingCardSkeleton";
+import { toast } from "sonner";
+
+const FILTERS = [
+  {
+    value: "all",
+    label: "All",
+  },
+  {
+    value: "pending",
+    label: "Pending",
+  },
+  {
+    value: "confirmed",
+    label: "Confirmed",
+  },
+  {
+    value: "cancelled",
+    label: "Cancelled",
+  },
+];
 
 export default function HostBookings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [bookings, setBookings] = useState([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchBookings(statusFilter);
-  }, [statusFilter]);
+    document.title = "Bookings | StayEase";
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchBookings(statusFilter, debouncedSearch);
+  }, [statusFilter, debouncedSearch]);
 
   const [stats, setStats] = useState({
     pending: 0,
@@ -30,36 +58,56 @@ export default function HostBookings() {
     cancelled: 0,
   });
 
-  const fetchBookings = async (status) => {
+  const fetchBookings = useCallback(async (status, search) => {
+    setLoading(true);
     try {
-      const data = await getHostBookings(status);
+      const data = await getHostBookings(status, search);
 
       setBookings(data.bookings);
 
       setStats(data.stats);
     } catch (err) {
-      console.error(err);
+      toast.error(err.response?.data?.message || "Unable to fetch bookings.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const filterButtons = [
-    {
-      value: "all",
-      label: "All",
-    },
-    {
-      value: "pending",
-      label: "Pending",
-    },
-    {
-      value: "confirmed",
-      label: "Confirmed",
-    },
-    {
-      value: "cancelled",
-      label: "Cancelled",
-    },
-  ];
+  const filterButtons = FILTERS.map((filter) => ({
+    ...filter,
+    count:
+      filter.value === "all"
+        ? stats["pending"] + stats["confirmed"] + stats["cancelled"]
+        : (stats[filter.value] ?? 0),
+  }));
+
+  const handleBookingStatus = async (bookingId, status) => {
+    setLoading(true);
+    try {
+      await updateBookingRequest(bookingId, status);
+
+      toast.success(
+        status === "confirmed"
+          ? "Booking accepted successfully."
+          : "Booking rejected successfully.",
+      );
+
+      fetchBookings(statusFilter, debouncedSearch);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update booking")
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // if (!loading && bookings.length === 0) {
+  //   return (
+  //     <EmptyState
+  //       title="No bookings found"
+  //       description="Try changing your search or filter."
+  //     />
+  //   );
+  // }
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -68,7 +116,7 @@ export default function HostBookings() {
       <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700">
         <button
           onClick={() => navigate(-1)}
-          className="absolute p-2 bg-white rounded-xl hover:cursor-pointer left-2 md:top-1/6 top-1/12 -translate-y-1/2 "
+          className="absolute p-2 text-white sm:text-black sm:bg-white rounded-xl hover:cursor-pointer left-2 md:top-1/6 top-1/12 -translate-y-1/2 "
         >
           <ArrowLeft />
         </button>
@@ -124,33 +172,38 @@ export default function HostBookings() {
         <div className="mt-8 rounded-2xl bg-white p-5 shadow">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search */}
-
             <div className="relative w-full lg:max-w-md">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
 
               <Input
-                placeholder="Search guest or property..."
+                placeholder="Search guest name or property..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-11 h-11"
+                className="h-11 pl-11"
               />
             </div>
 
-            {/* Filters */}
+            {/* Search Result Count */}
+            <div className="flex items-center justify-center text-sm text-slate-500">
+              Showing {bookings.length} booking{bookings.length !== 1 && "s"}
+              {search.trim() && ` for "${search}"`}
+            </div>
 
-            <div className="flex flex-wrap gap-3">
+            {/* Filters */}
+            <div className="flex overflow-x-auto pb-2 justify-start gap-3 lg:justify-end">
               {filterButtons.map((button) => (
                 <button
                   key={button.value}
+                  disabled={loading}
                   onClick={() => setStatusFilter(button.value)}
-                  className={`rounded-full px-5 py-2 font-medium transition hover:cursor-pointer
-                    ${
-                      statusFilter === button.value
-                        ? "bg-blue-600 text-white shadow"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
+                  className={`rounded-full px-4 py-1.5 sm:px-5 sm:py-2 font-heading sm:font-medium transition hover:cursor-pointer
+            ${
+              statusFilter === button.value
+                ? "bg-blue-600 text-white shadow"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            }`}
                 >
-                  {button.label}
+                  {button.label} ({button.count})
                 </button>
               ))}
             </div>
@@ -158,7 +211,15 @@ export default function HostBookings() {
         </div>
 
         {/* Booking Cards */}
-        <BookingsCards bookings={bookings} statusFilter={statusFilter} />
+        {loading ? (
+          <div className="mt-8 space-y-6">
+            {[...Array(5)].map((_, i) => (
+              <BookingCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <BookingsCards bookings={bookings} statusFilter={statusFilter} onStatusChange={handleBookingStatus} />
+        )}
       </div>
     </main>
   );

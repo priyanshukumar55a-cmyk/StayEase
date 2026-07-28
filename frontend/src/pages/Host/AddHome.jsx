@@ -6,9 +6,16 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Form, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import imageCompression from "browser-image-compression";
 
-const API_URL = import.meta.env.VITE_API_URL;
-// const API_URL ="http://localhost:3000";
+const options = {
+  maxSizeMB: 2,
+  maxWidthOrHeight: 1920,
+  useWebWorker:true,
+}
+
+// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL ="http://localhost:3000";
 
 export default function AddHome({ editing = false, home = {} }) {
   const [preview, setPreview] = useState("");
@@ -78,7 +85,8 @@ export default function AddHome({ editing = false, home = {} }) {
     });
 
     if (photo) {
-      payload.append("photo", photo);
+      const compressedFile = await imageCompression(photo, options);
+      payload.append("photo", compressedFile);
     }
 
     if (editing) {
