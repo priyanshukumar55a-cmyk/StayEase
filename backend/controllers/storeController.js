@@ -23,7 +23,19 @@ const normalizeBookingDate = (value) => {
 
 exports.getHomes = async (req, res) => {
   try {
-    const homes = await Home.find();
+    const { search = "" } = req.query;
+    const query = {};
+
+    if (search.trim()) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query.$or = [
+        { homeName: { $regex: escapedSearch, $options: "i" } },
+        { address: { $regex: escapedSearch, $options: "i" } },
+        { description: { $regex: escapedSearch, $options: "i" } },
+      ];
+    }
+
+    const homes = await Home.find(query);
 
     res.status(200).json({
       success: true,

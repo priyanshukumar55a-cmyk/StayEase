@@ -6,9 +6,12 @@ const API = axios.create({
   withCredentials: true,
 });
 
-export const getHomes = async () => {
+export const getHomes = async (search = "") => {
   try {
-    const res = await API.get("/homes");
+    const endpoint = search.trim()
+      ? `/homes?search=${encodeURIComponent(search.trim())}`
+      : "/homes";
+    const res = await API.get(endpoint);
     return res.data.homes;
   } catch (err) {
     console.error(err);
@@ -104,4 +107,4 @@ export const deleteMyReview = async (reviewId) => {
 export const editReview = async (reviewId, reviewData) => {
   const res = await API.patch(`/reviews/${reviewId}`, reviewData);
   return res.data;
-}
+};

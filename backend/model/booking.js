@@ -41,6 +41,7 @@ const bookingSchema = new mongoose.Schema(
       default: "pending",
     },
     cancelledAt: Date,
+    declinedAt: Date,
   },
   { timestamps: true },
 );

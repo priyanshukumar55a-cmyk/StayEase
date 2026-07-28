@@ -483,6 +483,7 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     booking.status = status;
+    booking.declinedAt = new Date();
 
     await booking.save();
     res.status(200).json({
