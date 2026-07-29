@@ -8,7 +8,6 @@ import Navbar from "./components/NavBar";
 import { Toaster } from "sonner";
 import AddHome from "./pages/Host/AddHome";
 import HostHomes from "./pages/Host/HostHomes";
-import { Loader2 } from "lucide-react";
 import VerifyEmail from "./auth/VerifyEmail";
 import HomesExplore from "./pages/HomeListExplore";
 import Favourites from "./pages/Favourites";
@@ -20,17 +19,18 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import EditProfile from "./pages/EditProfile";
 import ReviewPage from "./pages/ReviewPage";
 import HostDashboard from "./components/HostDashboard";
-import BookingRequests from "./pages/Host/HostBookings";
 import HostBookings from "./pages/Host/HostBookings";
+import HomeCardSkeleton from "./components/skeletons/HomeCardSkeleton";
 
 function RootLayout() {
   const { loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
+      <div className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {[...Array(9)].map((_, i) => (
+          <HomeCardSkeleton key={i} />
+        ))}
       </div>
     );
   }

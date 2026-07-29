@@ -12,17 +12,17 @@ export const getHostDashboardStats = async () => {
 };
 
 export const getHostBookings = async (status, search) => {
-    const res = await API.get(
-        `/host/bookings?status=${status}&search=${search}`
-    )
+  const res = await API.get(
+    `/host/bookings?status=${status}&search=${encodeURIComponent(search.trim())}`,
+  );
 
-    return res.data;
-}
+  return res.data;
+};
 
 export const updateBookingRequest = async (bookingId, status) => {
   const res = await API.patch(`/host/bookings/${bookingId}`, {
     status,
-  })
+  });
 
   return res.data;
-}
+};

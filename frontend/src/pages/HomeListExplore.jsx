@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Search, Star } from "lucide-react";
 import HomeMap from "./HomeMap";
 import { toast } from "sonner";
+import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
 
 export default function HomesExplore() {
   const [openedMap, setOpenedMap] = useState(null);
   const [homes, setHomes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingHome, setLoadingHome] = useState(false);
   const [addingId, setAddingId] = useState(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -30,6 +32,7 @@ export default function HomesExplore() {
 
   useEffect(() => {
     const fetchHomes = async () => {
+      setLoadingHome(true)
       try {
         const res = await getHomes(debouncedSearch);
 
@@ -38,6 +41,7 @@ export default function HomesExplore() {
         console.error(err);
       } finally {
         setLoading(false);
+        setLoadingHome(false)
       }
     };
 
@@ -67,9 +71,10 @@ export default function HomesExplore() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[...Array(9)].map((_, i) => (
+          <HomeCardSkeleton key={i} />
+        ))}
       </div>
     );
   }
@@ -104,7 +109,13 @@ export default function HomesExplore() {
         </p>
       </div>
 
-      {homes.length === 0 ? (
+      {loadingHome ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(9)].map((_, i) => (
+            <HomeCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : homes.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
           No homes found.
           {debouncedSearch.trim() ? ` Try another search term.` : ""}

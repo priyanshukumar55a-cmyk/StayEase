@@ -35,7 +35,7 @@ exports.getHomes = async (req, res) => {
       ];
     }
 
-    const homes = await Home.find(query);
+    const homes = await Home.find(query).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
