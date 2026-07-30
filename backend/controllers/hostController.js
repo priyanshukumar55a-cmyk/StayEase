@@ -328,7 +328,11 @@ exports.getHostDashboardStats = async (req, res) => {
       }),
       Review.find({
         home: { $in: homeIds },
-      }).select("rating"),
+      })
+        .populate("guest", "firstName lastName profileImage")
+        .populate("home", "homeName")
+        .sort({ createdAt: -1 })
+        .limit(5),
       Booking.find({
         host: hostId,
         status: "confirmed",
@@ -371,11 +375,57 @@ exports.getHostDashboardStats = async (req, res) => {
       averageRating,
 
       recentBookings,
+      reviews,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       message: "Failed to fetch dashboard statistics.",
+    });
+  }
+};
+
+exports.getReviews = async (req, res) => {
+  try {
+    const hostId = req.user._id;
+    const homes = await Home.find({ host: hostId }).select("_id status");
+
+    const homeIds = homes.map((home) => home._id);
+
+    const [reviews, fiveStarReviews] = await Promise.all([
+      Review.find({
+        home: { $in: homeIds },
+      })
+        .populate("guest", "firstName lastName profileImage")
+        .populate("home", "homeName")
+        .sort({ createdAt: -1 }),
+
+      Review.countDocuments({
+        home: { $in: homeIds },
+        rating: 5,
+      }),
+    ]);
+
+    const totalReviews = reviews.length;
+
+    const averageRating =
+      totalReviews === 0
+        ? 0
+        : (
+            reviews.reduce((sum, review) => sum + review.rating, 0) /
+            totalReviews
+          ).toFixed(1);
+
+    res.status(200).json({
+      reviews,
+      averageRating,
+      totalReviews,
+      fiveStarReviews,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch full reviews.",
     });
   }
 };

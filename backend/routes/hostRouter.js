@@ -46,6 +46,12 @@ hostRouter.get(
   ensureHost,
   hostController.getBookings,
 );
+hostRouter.get(
+  "/reviews",
+  ensureAuth,
+  ensureHost,
+  hostController.getReviews,
+);
 hostRouter.patch("/bookings/:bookingId", ensureAuth, ensureHost, hostController.updateBookingStatus);  
 
 module.exports = hostRouter;

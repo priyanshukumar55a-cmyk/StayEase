@@ -23,12 +23,12 @@ export default function Login() {
       const user = await loginUser({ email, password });
       await login(user);
       toast.success("Login successfull");
-      navigate("/");
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Unable to login. Please try again.",
       );
     } finally {
+      navigate("/");
       setLoading(false);
     }
   };

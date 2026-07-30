@@ -21,6 +21,7 @@ import ReviewPage from "./pages/ReviewPage";
 import HostDashboard from "./components/HostDashboard";
 import HostBookings from "./pages/Host/HostBookings";
 import HomeCardSkeleton from "./components/skeletons/HomeCardSkeleton";
+import HostReviews from "./pages/Host/HostReviews";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -173,6 +174,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <HostBookings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/host/reviews",
+        element: (
+          <ProtectedRoute>
+            <HostReviews />
           </ProtectedRoute>
         ),
       },

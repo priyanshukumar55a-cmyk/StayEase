@@ -49,11 +49,13 @@ export default function HostDashboard() {
   }
 
   const recentBookings = stats.recentBookings;
+  const reviews = stats.reviews;
 
   const statusStyles = {
     pending: "bg-yellow-100 text-yellow-700",
     confirmed: "bg-green-100 text-green-700",
     cancelled: "bg-red-100 text-red-700",
+    declined: "bg-red-100 text-red-700 border border-red-200",
   };
 
   if (stats.totalListings === 0) {
@@ -257,17 +259,72 @@ export default function HostDashboard() {
 
           <Card>
             <CardContent className="p-6">
-              <h2 className="mb-5 text-xl font-bold">Reviews</h2>
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="text-xl font-bold">Recent Reviews</h2>
 
-              <div className="flex h-60 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300">
-                <MessageSquare className="mb-3 h-12 w-12 text-slate-400" />
-
-                <h3 className="font-semibold">No reviews yet</h3>
-
-                <p className="mt-2 text-sm text-slate-500">
-                  Guest reviews will appear here after completed stays.
-                </p>
+                <Link
+                  to="/host/reviews"
+                  className="text-blue-600 hover:underline"
+                >
+                  View All
+                </Link>
               </div>
+
+              {reviews.length === 0 ? (
+                <div className="flex h-60 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300">
+                  <MessageSquare className="mb-3 h-12 w-12 text-slate-400" />
+
+                  <h3 className="font-semibold">No reviews yet</h3>
+
+                  <p className="mt-2 text-sm text-slate-500">
+                    Guest reviews will appear here after completed stays.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div
+                      key={review._id}
+                      className="rounded-xl border p-4 hover:bg-slate-50 transition hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex gap-3 items-center">
+                            <img
+                              src={
+                                review.guest.profileImage ||
+                                "/default-avatar.png"
+                              }
+                              alt={review.guest.firstName}
+                              className="h-8 w-8 sm:h-12 sm:w-12 rounded-full object-cover border border-blue-300"
+                            />
+                            <h3 className="font-semibold text-md md:text-xl">
+                              {review.guest.firstName} {review.guest.lastName}
+                            </h3>
+                          </div>
+
+                          <p className="text-sm text-slate-500 mt-2">
+                            {review.home.homeName}
+                          </p>
+
+                          <p className="mt-2 text-sm text-slate-700 line-clamp-2">
+                            "{review.comment}"
+                          </p>
+
+                          <p className="mt-2 text-xs text-slate-400">
+                            {formatDateTime(review.createdAt)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1">
+                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                          <span className="font-semibold">{review.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
           {/* Performance */}
