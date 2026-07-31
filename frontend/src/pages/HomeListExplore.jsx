@@ -32,7 +32,7 @@ export default function HomesExplore() {
 
   useEffect(() => {
     const fetchHomes = async () => {
-      setLoadingHome(true)
+      setLoadingHome(true);
       try {
         const res = await getHomes(debouncedSearch);
 
@@ -41,7 +41,7 @@ export default function HomesExplore() {
         console.error(err);
       } finally {
         setLoading(false);
-        setLoadingHome(false)
+        setLoadingHome(false);
       }
     };
 
@@ -70,13 +70,7 @@ export default function HomesExplore() {
   };
 
   if (loading) {
-    return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(9)].map((_, i) => (
-          <HomeCardSkeleton key={i} />
-        ))}
-      </div>
-    );
+    return <HomeCardSkeleton/>;
   }
 
   return (

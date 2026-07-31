@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getHostDashboardStats } from "@/api/hostApi";
 import { formatDateTime } from "./dayFormat";
+import HostDashboardSkeleton from "./skeletons/HostDashboardSkeleton";
 
 export default function HostDashboard() {
   const { user } = useAuth();
@@ -41,10 +42,7 @@ export default function HostDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
-      </div>
+      <HostDashboardSkeleton/>
     );
   }
 

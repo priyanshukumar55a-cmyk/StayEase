@@ -119,7 +119,7 @@ exports.getHomeDetails = async (req, res) => {
   try {
     const home = await Home.findById(req.params.homeId).populate({
       path: "host",
-      select: "firstName lastName email profilePhoto",
+      select: "firstName lastName email profileImage",
     });
 
     if (!home) {

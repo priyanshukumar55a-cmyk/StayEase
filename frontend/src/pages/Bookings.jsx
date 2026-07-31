@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, CalendarDays, MapPin } from "lucide-react";
+import { Loader2, CalendarDays, MapPin, Home } from "lucide-react";
 import { toast } from "sonner";
 import { cancelBooking, getBookings } from "@/api/bookingApi";
 import { formatDateTime } from "@/components/dayFormat";
@@ -27,6 +27,11 @@ const statusStyles = {
     icon: <CheckCircle2 className="h-4 w-4" />,
     className: "bg-green-100 text-green-700",
     label: "Confirmed",
+  },
+  ongoing: {
+    icon: <Home className="h-4 w-4" />,
+    className: "bg-blue-100 text-blue-700",
+    label: "Ongoing",
   },
   declined: {
     icon: <XCircle className="h-4 w-4" />,
@@ -108,7 +113,16 @@ export default function Bookings() {
 
         <div className="space-y-8 justify-center">
           {bookings.map((booking) => {
-            const currentStatus = statusStyles[booking.status];
+            const currentStatus =
+              booking.bookingStage === "completed"
+                ? {
+                    icon: <CheckCircle2 className="h-4 w-4" />,
+                    className: "bg-green-100 text-green-700",
+                    label: "Completed",
+                  }
+                : booking.bookingStage === "ongoing"
+                  ? statusStyles.ongoing
+                  : statusStyles[booking.status];
 
             return (
               <div
@@ -153,21 +167,12 @@ export default function Bookings() {
                         {booking.host.lastName}
                       </p>
                     </div>
-                    {booking.bookingStage === "completed" ? (
-                      <span
-                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-green-100 text-green-700`}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        Completed
-                      </span>
-                    ) : (
-                      <span
-                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${currentStatus.className}`}
-                      >
-                        {currentStatus.icon}
-                        {currentStatus.label}
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${currentStatus.className}`}
+                    >
+                      {currentStatus.icon}
+                      {currentStatus.label}
+                    </span>
 
                     {booking.status === "pending" && (
                       <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-3">
@@ -206,7 +211,7 @@ export default function Bookings() {
                       </div>
                     )}
                     {booking.bookingStage === "ongoing" && (
-                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 mt-3">
                         <p className="font-semibold text-blue-700">
                           Enjoy your stay! 🏡
                         </p>

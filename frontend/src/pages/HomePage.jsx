@@ -25,13 +25,7 @@ export default function HomePage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="p-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {[...Array(8)].map((_, i) => (
-          <HomeCardSkeleton key={i} />
-        ))}
-      </div>
-    );
+    return <HomeCardSkeleton />;
   }
 
   return <HomeList homes={homes} />;

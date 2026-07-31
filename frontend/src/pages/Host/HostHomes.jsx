@@ -5,9 +5,10 @@ import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import { toast } from "sonner";
 import { Loader2, Star } from "lucide-react";
+import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
 
-const API_URL = import.meta.env.VITE_API_URL;
-// const API_URL = "http://localhost:3000";
+// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "http://localhost:3000";
 
 export default function HostHomes() {
   const [openedMap, setOpenedMap] = useState(null);
@@ -55,10 +56,7 @@ export default function HostHomes() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
-      </div>
+      <HomeCardSkeleton/>
     );
   }
 

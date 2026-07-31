@@ -4,6 +4,7 @@ import { CalendarDays, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { bookHome, getHomeDetails } from "@/api/homeApi";
 import { formatDate, formatDateTime } from "@/components/dayFormat";
+import BookingRequestSkeleton from "@/components/skeletons/BookingRequestSkeleton";
 
 export default function BookingRequest() {
   const { homeId } = useParams();
@@ -75,10 +76,7 @@ export default function BookingRequest() {
   };
   if (homeLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
-      </div>
+      <BookingRequestSkeleton/>
     );
   }
 

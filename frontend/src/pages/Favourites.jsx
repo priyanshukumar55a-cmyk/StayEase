@@ -3,6 +3,7 @@ import { getFavouriteHomes, removeFavourite } from "@/api/homeApi";
 import { Loader2, HeartOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
 
 export default function Favourites() {
   const [homes, setHomes] = useState([]);
@@ -42,10 +43,7 @@ export default function Favourites() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-black/80" />
-        <span className="text-3xl text-black/80">Loading...</span>
-      </div>
+      <HomeCardSkeleton/>
     );
   }
 

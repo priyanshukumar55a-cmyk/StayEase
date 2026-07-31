@@ -35,6 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import HomeDetailsSkeleton from "@/components/skeletons/HomeDetailsSkeleton";
 
 export default function HomeDetails() {
   const { homeId } = useParams();
@@ -138,10 +139,7 @@ export default function HomeDetails() {
 
   if (!home || loadingReview) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="text-2xl">Loading...</span>
-      </div>
+      <HomeDetailsSkeleton/>
     );
   }
 
@@ -412,9 +410,11 @@ export default function HomeDetails() {
 
               <div className="mt-6 border-t pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-slate-100 p-3">
-                    <User className="h-5 w-5" />
-                  </div>
+                  <img
+                    src={home.host?.profileImage || "/default-avatar.png"}
+                    alt={home.host?.firstName}
+                    className="h-8 w-8 sm:h-12 sm:w-12 rounded-full object-cover border border-blue-300"
+                  />
 
                   <div>
                     <p className="font-semibold">
