@@ -26,6 +26,10 @@ const FILTERS = [
     value: "cancelled",
     label: "Cancelled",
   },
+  {
+    value: "declined",
+    label: "Declined",
+  },
 ];
 
 export default function HostBookings() {
@@ -56,6 +60,7 @@ export default function HostBookings() {
     pending: 0,
     confirmed: 0,
     cancelled: 0,
+    declined: 0,
   });
 
   const fetchBookings = useCallback(async (status, search) => {
@@ -77,7 +82,10 @@ export default function HostBookings() {
     ...filter,
     count:
       filter.value === "all"
-        ? stats["pending"] + stats["confirmed"] + stats["cancelled"]
+        ? stats["pending"] +
+          stats["confirmed"] +
+          stats["cancelled"] +
+          stats["declined"]
         : (stats[filter.value] ?? 0),
   }));
 
@@ -94,20 +102,11 @@ export default function HostBookings() {
 
       fetchBookings(statusFilter, debouncedSearch);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update booking")
+      toast.error(err.response?.data?.message || "Failed to update booking");
     } finally {
       setLoading(false);
     }
-  }
-
-  // if (!loading && bookings.length === 0) {
-  //   return (
-  //     <EmptyState
-  //       title="No bookings found"
-  //       description="Try changing your search or filter."
-  //     />
-  //   );
-  // }
+  };
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -165,6 +164,13 @@ export default function HostBookings() {
             icon={<XCircle className="text-red-600" />}
             bg="bg-red-50"
           />
+
+          <StatCard
+            title="Declined"
+            value={stats.declined}
+            icon={<XCircle className="text-red-600" />}
+            bg="bg-red-50"
+          />
         </div>
 
         {/* Search + Filters */}
@@ -173,7 +179,7 @@ export default function HostBookings() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search */}
             <div className="relative w-full lg:max-w-md">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-4 top-1/3 h-5 w-5 -translate-y-1/2 text-slate-400" />
 
               <Input
                 placeholder="Search guest name or property..."
@@ -181,12 +187,11 @@ export default function HostBookings() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="h-11 pl-11"
               />
-            </div>
-
-            {/* Search Result Count */}
-            <div className="flex items-center justify-center text-sm text-slate-500">
-              Showing {bookings.length} booking{bookings.length !== 1 && "s"}
-              {search.trim() && ` for "${search}"`}
+              {/* Search Result Count */}
+              <div className="mt-1.5 flex items-center text-sm text-slate-500">
+                Showing {bookings.length} booking{bookings.length !== 1 && "s"}
+                {search.trim() && ` for "${search}"`}
+              </div>
             </div>
 
             {/* Filters */}
@@ -218,7 +223,11 @@ export default function HostBookings() {
             ))}
           </div>
         ) : (
-          <BookingsCards bookings={bookings} statusFilter={statusFilter} onStatusChange={handleBookingStatus} />
+          <BookingsCards
+            bookings={bookings}
+            statusFilter={statusFilter}
+            onStatusChange={handleBookingStatus}
+          />
         )}
       </div>
     </main>

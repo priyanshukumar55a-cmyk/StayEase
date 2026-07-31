@@ -480,6 +480,10 @@ exports.getBookings = async (req, res) => {
         host: hostId,
         status: "cancelled",
       }),
+      declined: await Booking.countDocuments({
+        host: hostId,
+        status: "declined",
+      }),
     };
 
     res.status(200).json({
@@ -533,7 +537,9 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     booking.status = status;
-    booking.declinedAt = new Date();
+    if (status === "declined") {
+      booking.declinedAt = new Date();
+    }
 
     await booking.save();
     res.status(200).json({

@@ -64,9 +64,32 @@ exports.getBookings = async (req, res) => {
       .populate("host", "firstName lastName email")
       .sort({ createdAt: -1 });
 
+    const formattedBookings = bookings.map((booking) => {
+      const hoursLeft =
+        (new Date(booking.checkIn) - new Date()) / (1000 * 60 * 60);
+
+      let bookingStage = null;
+
+      if (booking.status === "confirmed") {
+        const now = new Date();
+
+        if (now < booking.checkIn) bookingStage = "upcoming";
+        else if (now <= booking.checkOut) bookingStage = "ongoing";
+        else bookingStage = "completed";
+      }
+
+      return {
+        ...booking.toObject(),
+        bookingStage,
+        canCancel:
+          booking.status === "pending" ||
+          (booking.status === "confirmed" && hoursLeft >= 24),
+      };
+    });
+
     res.json({
       success: true,
-      bookings,
+      bookings: formattedBookings,
     });
   } catch (err) {
     res.status(500).json({

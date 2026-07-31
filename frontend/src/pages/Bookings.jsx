@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2, Clock3, XCircle, Ban } from "lucide-react";
+import { MyBookingsSkeleton } from "@/components/skeletons/MyBookingsSkeleton";
 
 const statusStyles = {
   pending: {
@@ -61,12 +62,7 @@ export default function Bookings() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="text-2xl">Loading bookings...</span>
-      </div>
-    );
+    return <MyBookingsSkeleton />;
   }
 
   if (bookings.length === 0) {
@@ -89,17 +85,7 @@ export default function Bookings() {
 
       const updatedBooking = await cancelBooking(bookingId);
 
-      setBookings((prev) =>
-        prev.map((booking) =>
-          booking._id === bookingId
-            ? {
-                ...booking,
-                status: "cancelled",
-                cancelledAt: new Date(),
-              }
-            : booking,
-        ),
-      );
+      setBookings(updatedBooking.booking);
 
       toast.success("Booking cancelled");
     } catch (error) {
@@ -163,29 +149,31 @@ export default function Bookings() {
                         </p>
                       </div>
                       <p className="text-md text-slate-500">
-                        Hosted by: {booking.host.firstName} {booking.host.lastName}
+                        Hosted by: {booking.host.firstName}{" "}
+                        {booking.host.lastName}
                       </p>
                     </div>
-                    <span
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${currentStatus.className}`}
-                    >
-                      {currentStatus.icon}
-                      {currentStatus.label}
-                    </span>
+                    {booking.bookingStage === "completed" ? (
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-green-100 text-green-700`}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Completed
+                      </span>
+                    ) : (
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${currentStatus.className}`}
+                      >
+                        {currentStatus.icon}
+                        {currentStatus.label}
+                      </span>
+                    )}
+
                     {booking.status === "pending" && (
                       <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-3">
                         <p className="text-sm text-yellow-700">
                           ⏳ Your booking request has been sent to the host.
                           You'll be notified once they accept or decline it.
-                        </p>
-                      </div>
-                    )}
-
-                    {booking.status === "confirmed" && (
-                      <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3">
-                        <p className="text-sm text-green-700">
-                          ✅ Your booking has been confirmed by the host. We
-                          hope you enjoy your stay!
                         </p>
                       </div>
                     )}
@@ -206,7 +194,7 @@ export default function Bookings() {
                         </p>
                       </div>
                     )}
-                    {booking.status === "confirmed" && (
+                    {booking.bookingStage === "upcoming" && (
                       <div className="mt-5 rounded-xl bg-green-50 border border-green-200 p-4">
                         <p className="font-semibold text-green-700">
                           Booking Confirmed 🎉
@@ -214,6 +202,17 @@ export default function Bookings() {
 
                         <p className="text-sm text-slate-600 mt-1">
                           Please arrive on your check-in date.
+                        </p>
+                      </div>
+                    )}
+                    {booking.bookingStage === "ongoing" && (
+                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                        <p className="font-semibold text-blue-700">
+                          Enjoy your stay! 🏡
+                        </p>
+
+                        <p className="mt-1 text-sm text-slate-600">
+                          We hope you're having a wonderful experience.
                         </p>
                       </div>
                     )}
@@ -249,74 +248,85 @@ export default function Bookings() {
                         </p>
                       </div>
 
-                      {(booking.status === "pending" ||
-                        booking.status === "confirmed") && (
-                        <AlertDialog
-                          open={selectedBookingId === booking._id}
-                          onOpenChange={(isOpen) =>
-                            setSelectedBookingId(isOpen ? booking._id : null)
-                          }
-                        >
-                          <AlertDialogTrigger
-                            onClick={() => setSelectedBookingId(booking._id)}
+                      {booking.bookingStage === "completed" ? (
+                        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+                          <p className="font-semibold text-green-700">
+                            Stay Completed ✓
+                          </p>
+
+                          <p className="text-sm text-slate-600">
+                            We hope you enjoyed your stay.
+                          </p>
+                        </div>
+                      ) : (
+                        booking.canCancel && (
+                          <AlertDialog
+                            open={selectedBookingId === booking._id}
+                            onOpenChange={(isOpen) =>
+                              setSelectedBookingId(isOpen ? booking._id : null)
+                            }
                           >
-                            {booking.status !== "cancelled" && (
-                              <button
-                                disabled={cancellingId === booking._id}
-                                className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
-                              >
-                                {cancellingId === booking._id ? (
-                                  <div className="flex items-center gap-2">
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                    <span>Cancelling...</span>
-                                  </div>
-                                ) : (
-                                  "Cancel Booking"
-                                )}
-                              </button>
-                            )}
-                          </AlertDialogTrigger>
+                            <AlertDialogTrigger
+                              onClick={() => setSelectedBookingId(booking._id)}
+                            >
+                              {booking.status !== "cancelled" && (
+                                <button
+                                  disabled={cancellingId === booking._id}
+                                  className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
+                                >
+                                  {cancellingId === booking._id ? (
+                                    <div className="flex items-center gap-2">
+                                      <Loader2 className="h-5 w-5 animate-spin" />
+                                      <span>Cancelling...</span>
+                                    </div>
+                                  ) : (
+                                    "Cancel Booking"
+                                  )}
+                                </button>
+                              )}
+                            </AlertDialogTrigger>
 
-                          <AlertDialogContent className="sm:max-w-md rounded-2xl">
-                            <AlertDialogHeader>
-                              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                                <XCircle className="h-8 w-8 text-red-600" />
-                              </div>
+                            <AlertDialogContent className="sm:max-w-md rounded-2xl">
+                              <AlertDialogHeader>
+                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                                  <XCircle className="h-8 w-8 text-red-600" />
+                                </div>
 
-                              <AlertDialogTitle className="text-center text-2xl">
-                                Cancel Booking?
-                              </AlertDialogTitle>
+                                <AlertDialogTitle className="text-center text-2xl">
+                                  Cancel Booking?
+                                </AlertDialogTitle>
 
-                              <AlertDialogDescription className="text-center leading-6">
-                                You're about to cancel your reservation for
-                                <span className="mt-2 block font-semibold text-slate-900">
-                                  {booking.home.homeName}
-                                </span>
-                                <span className="mt-3 block text-red-500">
-                                  This action cannot be undone.
-                                </span>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
+                                <AlertDialogDescription className="text-center leading-6">
+                                  You're about to cancel your reservation for
+                                  <span className="mt-2 block font-semibold text-slate-900">
+                                    {booking.home.homeName}
+                                  </span>
+                                  <span className="mt-3 block text-red-500">
+                                    Your booking will be cancelled immediately.
+                                  </span>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
 
-                            <AlertDialogFooter className="mt-4">
-                              <AlertDialogCancel
-                                className={"hover:cursor-pointer"}
-                              >
-                                Keep Booking
-                              </AlertDialogCancel>
+                              <AlertDialogFooter className="mt-4">
+                                <AlertDialogCancel
+                                  className={"hover:cursor-pointer"}
+                                >
+                                  Keep Booking
+                                </AlertDialogCancel>
 
-                              <AlertDialogAction
-                                onClick={() => {
-                                  cancelBook(booking._id);
-                                  setSelectedBookingId(null);
-                                }}
-                                className="bg-red-600 hover:bg-red-700 hover:cursor-pointer"
-                              >
-                                Yes, Cancel Booking
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    cancelBook(booking._id);
+                                    setSelectedBookingId(null);
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700 hover:cursor-pointer"
+                                >
+                                  Yes, Cancel Booking
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )
                       )}
 
                       {booking.status === "cancelled" && (
@@ -327,12 +337,12 @@ export default function Bookings() {
                         </div>
                       )}
                       {booking.status === "declined" && booking.declinedAt && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                      <p className="text-sm font-medium text-red-600">
-                        Declined on {formatDateTime(booking.declinedAt)}
-                      </p>
-                    </div>
-                  )}
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                          <p className="text-sm font-medium text-red-600">
+                            Declined on {formatDateTime(booking.declinedAt)}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
