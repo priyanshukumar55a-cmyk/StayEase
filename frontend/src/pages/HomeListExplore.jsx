@@ -70,7 +70,7 @@ export default function HomesExplore() {
   };
 
   if (loading) {
-    return <HomeCardSkeleton/>;
+    return <HomeCardSkeleton />;
   }
 
   return (
@@ -104,11 +104,7 @@ export default function HomesExplore() {
       </div>
 
       {loadingHome ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(9)].map((_, i) => (
-            <HomeCardSkeleton key={i} />
-          ))}
-        </div>
+        <HomeCardSkeleton/>
       ) : homes.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
           No homes found.
