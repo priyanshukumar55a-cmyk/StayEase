@@ -3,17 +3,22 @@ import HomeList from "./HomeList";
 import { getHomes } from "@/api/homeApi";
 import { Loader2 } from "lucide-react";
 import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
+import Pagination from "@/components/Pagination";
 
 export default function HomePage() {
   const [homes, setHomes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHomes = async () => {
+      setLoading(true);
       try {
-        const res = await getHomes();
+        const res = await getHomes(currentPage);
 
-        setHomes(res);
+        setHomes(res.homes);
+        setTotalPages(res.totalPages);
       } catch (err) {
         console.error(err);
       } finally {
@@ -22,11 +27,20 @@ export default function HomePage() {
     };
 
     fetchHomes();
-  }, []);
+  }, [currentPage]);
 
   if (loading) {
     return <HomeCardSkeleton />;
   }
 
-  return <HomeList homes={homes} />;
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <HomeList homes={homes} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+    </div>
+  );
 }

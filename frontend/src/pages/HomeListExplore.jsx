@@ -6,6 +6,7 @@ import { Loader2, Search, Star } from "lucide-react";
 import HomeMap from "./HomeMap";
 import { toast } from "sonner";
 import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
+import Pagination from "@/components/Pagination";
 
 export default function HomesExplore() {
   const [openedMap, setOpenedMap] = useState(null);
@@ -15,6 +16,8 @@ export default function HomesExplore() {
   const [addingId, setAddingId] = useState(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
 
@@ -25,6 +28,7 @@ export default function HomesExplore() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
+      setCurrentPage(1);
     }, 350);
 
     return () => clearTimeout(timer);
@@ -34,9 +38,10 @@ export default function HomesExplore() {
     const fetchHomes = async () => {
       setLoadingHome(true);
       try {
-        const res = await getHomes(debouncedSearch);
+        const res = await getHomes(currentPage, debouncedSearch);
 
-        setHomes(res);
+        setHomes(res.homes);
+        setTotalPages(res.totalPages);
       } catch (err) {
         console.error(err);
       } finally {
@@ -46,7 +51,7 @@ export default function HomesExplore() {
     };
 
     fetchHomes();
-  }, [debouncedSearch]);
+  }, [currentPage, debouncedSearch]);
 
   const addToFavourite = (homeId) => {
     const postAddToFavourite = async () => {
@@ -104,7 +109,7 @@ export default function HomesExplore() {
       </div>
 
       {loadingHome ? (
-        <HomeCardSkeleton/>
+        <HomeCardSkeleton />
       ) : homes.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
           No homes found.
@@ -118,15 +123,23 @@ export default function HomesExplore() {
               className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
               {/* Image */}
-              <div className="overflow-hidden">
+              <div className="relative overflow-hidden">
                 <img
                   src={
                     home.photo ||
                     "https://via.placeholder.com/400x300?text=No+Image"
                   }
                   alt={home.homeName}
-                  className="h-48 w-full object-cover transition duration-300 hover:scale-105"
+                  className="h-60 w-full object-cover transition duration-500 group-hover:scale-110"
                 />
+
+                {/* Rating Badge */}
+                <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 shadow">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">
+                    {home.averageRating?.toFixed(1) || "New"}
+                  </span>
+                </div>
               </div>
 
               {/* Map */}
@@ -205,6 +218,11 @@ export default function HomesExplore() {
           ))}
         </div>
       )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </main>
   );
 }

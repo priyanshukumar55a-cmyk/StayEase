@@ -23,7 +23,7 @@ const normalizeBookingDate = (value) => {
 
 exports.getHomes = async (req, res) => {
   try {
-    const { search = "" } = req.query;
+    const { page = 1, limit = 6, search = "" } = req.query;
     const query = {};
 
     if (search.trim()) {
@@ -35,11 +35,17 @@ exports.getHomes = async (req, res) => {
       ];
     }
 
-    const homes = await Home.find(query).sort({ createdAt: -1 });
+    const totalHomes = await Home.countDocuments(query);
+    const homes = await Home.find(query)
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
-      success: true,
       homes,
+      totalHomes,
+      totalPages: Math.ceil(totalHomes / limit),
+      currentPage: Number(page),
     });
   } catch (err) {
     res.status(500).json({
