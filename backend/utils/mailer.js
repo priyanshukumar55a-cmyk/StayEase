@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const senderName = process.env.EMAIL_FROM_NAME || "StayEase";
 const senderAddress =
-  process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL || "noreply@stayease.app";
+  process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL
 const replyToAddress = process.env.REPLY_TO_EMAIL || senderAddress;
 
 let transporter = null;
@@ -39,12 +39,18 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-async function sendVerificationEmail({ to, verifyUrl }) {
-  const subject = "Verify your email for StayEase";
+async function sendVerificationEmail({
+  to,
+  verifyUrl,
+  subject = "Verify your email for StayEase",
+  title = "Confirm your email address",
+  message = "Welcome to StayEase! Please confirm your email address to activate your account and continue exploring homes.",
+  buttonText = "Verify Email",
+}) {
   const text = [
     "Welcome to StayEase!",
-    "Please verify your email address to continue using your account.",
-    `Verification link: ${verifyUrl}`,
+    message,
+    `Link: ${verifyUrl}`,
   ].join("\n\n");
 
   const html = `
@@ -53,12 +59,12 @@ async function sendVerificationEmail({ to, verifyUrl }) {
         <h2 style="margin: 0; color: #ff385c; font-size: 28px;">StayEase</h2>
       </div>
       <div style="background: #ffffff; border: 1px solid #f0f0f0; border-radius: 12px; padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-        <h3 style="margin: 0 0 12px; font-size: 22px; color: #111;">Confirm your email address</h3>
+        <h3 style="margin: 0 0 12px; font-size: 22px; color: #111;">${title}</h3>
         <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #555;">
-          Welcome to StayEase! Please confirm your email address to activate your account and continue exploring homes.
+          ${message}
         </p>
         <div style="margin: 24px 0; text-align: center;">
-          <a href="${verifyUrl}" style="display: inline-block; background: #ff385c; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">Verify Email</a>
+          <a href="${verifyUrl}" style="display: inline-block; background: #ff385c; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">${buttonText}</a>
         </div>
         <p style="margin: 0 0 8px; font-size: 13px; color: #888;">
           If the button above does not work, copy and paste this link into your browser:

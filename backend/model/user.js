@@ -40,6 +40,12 @@ const userSchema = mongoose.Schema(
     tokenExpiry: {
       type: Date,
     },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetTokenExpiry: {
+      type: Date,
+    },
     profileImage: {
       type: String,
       default: "",

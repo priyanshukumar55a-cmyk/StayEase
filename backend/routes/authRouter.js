@@ -10,6 +10,8 @@ const upload = require("../middleware/multer");
 authRouter.post("/login", ensureGuest, authController.postLogin);
 authRouter.post("/logout", authController.postLogout);
 authRouter.post("/signup", ensureGuest, authController.postSignup);
+authRouter.post("/forgot-password", authController.forgotPassword);
+authRouter.post("/reset-password", authController.resetPassword);
 authRouter.get("/verify-email", authController.verifyEmail);
 authRouter.get("/me", ensureAuth, (req, res) => {
     res.json({

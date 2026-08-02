@@ -4,6 +4,8 @@ import HomePage from "./pages/HomePage";
 import HomeDetails from "./pages/HomeDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Navbar from "./components/NavBar";
 import { Toaster } from "sonner";
 import AddHome from "./pages/Host/AddHome";
@@ -22,6 +24,7 @@ import HostDashboard from "./components/HostDashboard";
 import HostBookings from "./pages/Host/HostBookings";
 import HomeCardSkeleton from "./components/skeletons/HomeCardSkeleton";
 import HostReviews from "./pages/Host/HostReviews";
+import NotFound from "./components/NotFound";
 
 function RootLayout() {
   const { loading } = useAuth();
@@ -71,6 +74,22 @@ const router = createBrowserRouter([
           <PublicRoute>
             {" "}
             <Signup />
+          </PublicRoute>
+        ),
+      },
+      {
+        path: "/forgot-password",
+        element: (
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        ),
+      },
+      {
+        path: "/reset-password",
+        element: (
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         ),
       },
@@ -178,6 +197,10 @@ const router = createBrowserRouter([
             <HostReviews />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: "*",
+        element: <NotFound />,
       },
     ],
   },

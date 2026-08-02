@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000",
-  // baseURL: import.meta.env.VITE_API_URL,
+  // baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -14,6 +14,16 @@ export const loginUser = async (credentials) => {
 export const signupUser = async (userData) => {
   const res = await API.post("/auth/signup", userData);
   return res.data.user;
+};
+
+export const forgotPassword = async (payload) => {
+  const res = await API.post("/auth/forgot-password", payload);
+  return res.data;
+};
+
+export const resetPassword = async (payload) => {
+  const res = await API.post("/auth/reset-password", payload);
+  return res.data;
 };
 
 export const logoutUser = async () => {

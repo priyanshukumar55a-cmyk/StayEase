@@ -148,7 +148,12 @@ export default function Login() {
             </form>
 
             <div className="mt-5 flex items-center justify-between text-sm text-slate-400">
-              <span>Need an account?</span>
+              <Link
+                to="/forgot-password"
+                className="font-semibold text-blue-400 transition hover:text-blue-300"
+              >
+                Forgot password?
+              </Link>
               <Link
                 to="/signup"
                 className="font-semibold text-white transition hover:text-blue-300"

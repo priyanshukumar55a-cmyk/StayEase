@@ -1,18 +1,19 @@
 import axios from "axios";
 
 const API = axios.create({
-  // baseURL: import.meta.env.VITE_API_URL,
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
+  // baseURL: "http://localhost:3000",
   withCredentials: true,
 });
 
-export const getHomes = async (page = 1, search = "") => {
+export const getHomes = async (page = 1, search = "", sort = "newest") => {
   try {
     const res = await API.get("homes", {
       params: {
         page,
         limit: 6,
         search: search.trim() ? search.trim() : "",
+        sort,
       },
     });
     return res.data;

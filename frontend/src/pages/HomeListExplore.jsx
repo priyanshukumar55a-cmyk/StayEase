@@ -7,6 +7,13 @@ import HomeMap from "./HomeMap";
 import { toast } from "sonner";
 import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
 import Pagination from "@/components/Pagination";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function HomesExplore() {
   const [openedMap, setOpenedMap] = useState(null);
@@ -18,6 +25,7 @@ export default function HomesExplore() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sort, setSort] = useState("newest");
 
   const navigate = useNavigate();
 
@@ -38,7 +46,7 @@ export default function HomesExplore() {
     const fetchHomes = async () => {
       setLoadingHome(true);
       try {
-        const res = await getHomes(currentPage, debouncedSearch);
+        const res = await getHomes(currentPage, debouncedSearch, sort);
 
         setHomes(res.homes);
         setTotalPages(res.totalPages);
@@ -51,7 +59,7 @@ export default function HomesExplore() {
     };
 
     fetchHomes();
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, sort]);
 
   const addToFavourite = (homeId) => {
     const postAddToFavourite = async () => {
@@ -73,6 +81,13 @@ export default function HomesExplore() {
 
     postAddToFavourite();
   };
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 30,
+      behaviour: "smooth",
+    });
+  }, [currentPage]);
 
   if (loading) {
     return <HomeCardSkeleton />;
@@ -99,6 +114,20 @@ export default function HomesExplore() {
             className="pl-11"
           />
         </div>
+
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger className="w-56 hover:cursor-pointer">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+
+          <SelectContent className="p-1.5">
+            <SelectItem className="p-1.5" value="newest">Newest</SelectItem>
+            <SelectItem className="p-1.5" value="price_asc">Price: Low to High</SelectItem>
+            <SelectItem className="p-1.5" value="price_desc">Price: High to Low</SelectItem>
+            <SelectItem className="p-1.5" value="rating">Highest Rated</SelectItem>
+            <SelectItem className="p-1.5" value="reviews">Most Reviewed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="mb-6 flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">

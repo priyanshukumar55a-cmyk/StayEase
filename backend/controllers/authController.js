@@ -4,10 +4,10 @@ const User = require("../model/user");
 const Host = require("../model/host");
 const Booking = require("../model/booking");
 const crypto = require("crypto");
-const { sendVerificationEmail } = require("../utils/mailer");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const generateToken = require("../utils/generateToken");
 const { ReturnDocument } = require("mongodb");
+const { sendVerificationEmail } = require("../utils/mailer");
 
 exports.getProfile = async (req, res) => {
   try {
@@ -275,6 +275,102 @@ exports.postLogout = (req, res) => {
     success: true,
     message: "Logged out successfully",
   });
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email is required." });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account exists, a reset link has been sent.",
+      });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetTokenExpiry = Date.now() + 3600000;
+    await user.save();
+
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await sendVerificationEmail({
+      to: user.email,
+      verifyUrl: resetUrl,
+      subject: "Reset your StayEase password",
+      title: "Reset your password",
+      message:
+        "Use the secure link below to choose a new password for your StayEase account.",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "If an account exists, a reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to process password reset right now.",
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token and new password are required.",
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset link.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to reset password right now.",
+    });
+  }
 };
 
 exports.verifyEmail = async (req, res) => {

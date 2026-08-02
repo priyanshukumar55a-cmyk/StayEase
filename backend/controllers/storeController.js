@@ -23,8 +23,32 @@ const normalizeBookingDate = (value) => {
 
 exports.getHomes = async (req, res) => {
   try {
-    const { page = 1, limit = 6, search = "" } = req.query;
+    const { page = 1, limit = 6, search = "", sort = "newest" } = req.query;
     const query = {};
+
+    let sortOption = {};
+
+    switch (sort) {
+      case "price_asc":
+        sortOption = { price: 1 };
+        break;
+      
+      case "price_desc":
+        sortOption = { price: -1 };
+        break;
+      
+      case "rating":
+        sortOption = { averageRating: -1 };
+        break;
+      
+      case "reviews":
+        sortOption = { reviewCount: -1 };
+        break;
+      
+      default:
+        sortOption = { createdAt: -1 };
+        break;
+    }
 
     if (search.trim()) {
       const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -39,7 +63,7 @@ exports.getHomes = async (req, res) => {
     const homes = await Home.find(query)
       .skip((page - 1) * limit)
       .limit(Number(limit))
-      .sort({ createdAt: -1 });
+      .sort(sortOption);
 
     res.status(200).json({
       homes,

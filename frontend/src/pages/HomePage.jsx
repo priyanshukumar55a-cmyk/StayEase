@@ -12,6 +12,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 30,
+      behaviour: "smooth",
+    });
+    
     const fetchHomes = async () => {
       setLoading(true);
       try {
