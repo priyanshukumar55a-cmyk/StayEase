@@ -92,25 +92,31 @@ const HostReviews = () => {
         {/* Stats */}
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3 lg:w-auto">
           {/* Average Rating */}
-          <div className="flex flex-col justify-center rounded-2xl bg-yellow-50 px-6 py-4 shadow-sm">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col justify-center rounded-2xl bg-yellow-100 px-6 py-4 shadow-sm">
+            <div className="flex items-center gap-2 dark:text-slate-700">
               <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
-              <span className="text-2xl font-bold">{averageRating}</span>
+              <span className="text-2xl font-bold dark:text-slate-700">
+                {averageRating}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-slate-500">Average Rating</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-white">
+              Average Rating
+            </p>
           </div>
 
           {/* Total Reviews */}
-          <div className="flex flex-col justify-center rounded-2xl bg-blue-50 px-6 py-4 shadow-sm">
+          <div className="flex flex-col justify-center rounded-2xl bg-blue-100 px-6 py-4 shadow-sm">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-blue-500" />
-              <span className="text-2xl font-bold">{totalReviews}</span>
+              <span className="text-2xl font-bold dark:text-slate-700">
+                {totalReviews}
+              </span>
             </div>
             <p className="mt-1 text-sm text-slate-500">Reviews</p>
           </div>
 
           {/* Five Star Reviews */}
-          <div className="flex flex-col justify-center rounded-2xl bg-green-50 px-6 py-4 shadow-sm">
+          <div className="flex flex-col justify-center rounded-2xl bg-green-100 px-6 py-4 shadow-sm">
             <div className="flex items-center gap-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -120,7 +126,9 @@ const HostReviews = () => {
                   />
                 ))}
               </div>
-              <span className="text-2xl font-bold">{fiveStarReviews}</span>
+              <span className="text-2xl font-bold dark:text-slate-700">
+                {fiveStarReviews}
+              </span>
             </div>
             <p className="mt-1 text-sm text-slate-500">5-Star Reviews</p>
           </div>
@@ -134,17 +142,17 @@ const HostReviews = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search guest, property or comment..."
-            className="pl-11"
+            className="pl-11 border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
 
         <div className="flex gap-3">
           <Select value={ratingFilter} onValueChange={setRatingFilter}>
-            <SelectTrigger className="w-40 hover:cursor-pointer">
+            <SelectTrigger className="w-40 border-slate-300 hover:cursor-pointer dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700">
               <SelectValue placeholder="All Ratings" />
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent className="dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700">
               <SelectItem value="all">All Ratings</SelectItem>
               <SelectItem value="5">⭐⭐⭐⭐⭐ (5)</SelectItem>
               <SelectItem value="4">⭐⭐⭐⭐ (4+)</SelectItem>
@@ -155,11 +163,11 @@ const HostReviews = () => {
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40 hover:cursor-pointer">
+            <SelectTrigger className="w-40 border-slate-300 hover:cursor-pointer dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700">
               <SelectValue placeholder="Newest" />
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent className="dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700">
               <SelectItem value="newest">Newest First</SelectItem>
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
@@ -201,7 +209,7 @@ const HostReviews = () => {
                 key={review._id}
                 className="rounded-xl border border-slate-200
                 shadow-sm
-                hover:shadow-lg p-4 hover:bg-slate-50 transition"
+                hover:shadow-lg p-4 hover:bg-slate-50 transition *:dark:border-slate-700 dark:hover:bg-slate-800"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -233,7 +241,9 @@ const HostReviews = () => {
                           />
                         ))}
                       </div>
-                      <span className="font-semibold">{review.rating}</span>
+                      <span className="font-semibold dark:text-black/70">
+                        {review.rating}
+                      </span>
                     </div>
 
                     <p className="mt-2 text-base leading-7 text-slate-700">

@@ -1,21 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent } from "./ui/card";
 import { CalendarDays } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 
-const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
-  const [acceptDialogBookingId, setAcceptDialogBookingId] = useState(null);
-  const [rejectDialogBookingId, setRejectDialogBookingId] = useState(null);
-
+const BookingsCards = ({ bookings, statusFilter }) => {
   return (
     <div className="sm:mt-8 mt-4 space-y-6">
       {bookings.length === 0 ? (
@@ -24,12 +11,12 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
             <CalendarDays className="mb-4 h-12 w-12 text-slate-400" />
 
             <h3 className="text-xl font-semibold text-slate-700">
-              No booking requests
+              No bookings yet
             </h3>
 
             <p className="mt-2 text-slate-500">
-              There are no {statusFilter !== "all" ? statusFilter : ""} booking
-              requests. Try changing your filters or search query.
+              There are no {statusFilter !== "all" ? statusFilter : ""}{" "}
+              bookings. Try changing your filters or search query.
             </p>
           </CardContent>
         </Card>
@@ -112,101 +99,9 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
                     <InfoBox title="Amount" value={`₹${booking.totalPrice}`} />
                   </div>
 
-                  {/* Actions */}
-
-                  {booking.status === "pending" && (
-                    <>
-                      <AlertDialog
-                        open={acceptDialogBookingId === booking._id}
-                        onOpenChange={(open) => {
-                          if (!open) setAcceptDialogBookingId(null);
-                        }}
-                      >
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Accept booking request?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Confirm that you want to accept this booking. The
-                              guest will be notified and the request will be
-                              finalized.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="hover:cursor-pointer">
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                onStatusChange(booking._id, "confirmed");
-                                setAcceptDialogBookingId(null);
-                              }}
-                              className="bg-green-600 hover:bg-green-700 hover:cursor-pointer"
-                            >
-                              Accept
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-
-                      <AlertDialog
-                        open={rejectDialogBookingId === booking._id}
-                        onOpenChange={(open) => {
-                          if (!open) setRejectDialogBookingId(null);
-                        }}
-                      >
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Reject booking request?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Confirm that you want to decline this booking. The
-                              guest will be notified and the request will be
-                              marked as declined.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="hover:cursor-pointer">
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                onStatusChange(booking._id, "declined");
-                                setRejectDialogBookingId(null);
-                              }}
-                              className="bg-red-600 hover:bg-red-700 hover:cursor-pointer"
-                            >
-                              Reject
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        <button
-                          onClick={() => setAcceptDialogBookingId(booking._id)}
-                          className="rounded-xl bg-green-600 px-6 py-2 font-semibold text-white transition hover:bg-green-700 hover:cursor-pointer"
-                        >
-                          Accept
-                        </button>
-
-                        <button
-                          onClick={() => setRejectDialogBookingId(booking._id)}
-                          className="rounded-xl bg-red-600 px-6 py-2 font-semibold text-white transition hover:bg-red-700 hover:cursor-pointer"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </>
-                  )}
-
                   {booking.status === "confirmed" && (
                     <div className="mt-6 rounded-xl bg-green-50 px-4 py-3 font-medium text-green-700">
-                      ✓ This booking has been accepted.
+                      ✓ This booking is confirmed.
                     </div>
                   )}
 
@@ -217,7 +112,7 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
                   )}
                   {booking.status === "declined" && (
                     <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 font-medium text-red-700">
-                      ✕ This booking request was declined.
+                      ✕ This booking was declined.
                     </div>
                   )}
                 </div>

@@ -43,7 +43,7 @@ export default function BookingRequest() {
   const calculateTotal = (price, nights) => {
     if (!checkIn || !checkOut) return 0;
 
-    return price * nights;
+    return price*nights;
   };
 
   const handleBooking = async (e) => {
@@ -61,9 +61,7 @@ export default function BookingRequest() {
         checkOut,
       });
 
-      toast.success(
-        "Booking request sent. You'll be notified once the host reviews it.",
-      );
+      toast.success("Booking confirmed. Enjoy your stay!");
 
       setTimeout(() => {
         navigate("/bookings", { replace: true });
@@ -75,29 +73,27 @@ export default function BookingRequest() {
     }
   };
   if (homeLoading) {
-    return (
-      <BookingRequestSkeleton/>
-    );
+    return <BookingRequestSkeleton />;
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
+    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 bg-background sm:py-20">
+      <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-xl">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
             <CalendarDays className="h-7 w-7 text-blue-600" />
           </div>
 
-          <h1 className="text-3xl font-bold text-slate-900">
-            Request Your Stay
+          <h1 className="text-3xl font-bold text-card-foreground">
+            Book Your Stay
           </h1>
 
-          <p className="mt-2 text-slate-500">
-            Choose your stay dates and send a booking request to the host.
+          <p className="mt-2 text-muted-foreground">
+            Choose your stay dates and confirm your free booking instantly.
           </p>
         </div>
         {home && (
-          <div className="mb-8 flex flex-col gap-4 rounded-2xl border bg-slate-50 p-4 sm:flex-row sm:items-center">
+          <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-border bg-muted p-4 sm:flex-row sm:items-center">
             <img
               src={home.photo || "/default-home.jpg"}
               alt={home.homeName}
@@ -125,7 +121,7 @@ export default function BookingRequest() {
 
         <form onSubmit={handleBooking} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Check-in Date
             </label>
 
@@ -135,12 +131,12 @@ export default function BookingRequest() {
               min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setCheckIn(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Check-out Date
             </label>
 
@@ -155,7 +151,7 @@ export default function BookingRequest() {
           </div>
 
           {checkIn && checkOut && (
-            <div className="space-y-2 rounded-2xl bg-slate-100 p-4">
+            <div className="space-y-2 rounded-2xl bg-muted p-4">
               <div className="flex justify-between">
                 <span>Check-in</span>
                 <span className="font-medium">{formatDate(checkIn)}</span>
@@ -190,10 +186,12 @@ export default function BookingRequest() {
           <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
             <h3 className="font-semibold text-blue-700">What happens next?</h3>
 
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
-              <li>Your booking request will be sent to the host.</li>
-              <li>The host can accept or decline your request.</li>
-              <li>You'll be notified once the host responds.</li>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm dark:text-muted">
+              <li>
+                Your stay is booked instantly and confirmed automatically.
+              </li>
+              <li>The total booking cost is free for guests.</li>
+              <li>You can cancel up to 24 hours before check-in.</li>
             </ul>
           </div>
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -214,10 +212,10 @@ export default function BookingRequest() {
             {loading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Sending Request...</span>
+                <span>Confirming Booking...</span>
               </div>
             ) : (
-              "Send Booking Request"
+              "Confirm Booking"
             )}
           </button>
         </form>

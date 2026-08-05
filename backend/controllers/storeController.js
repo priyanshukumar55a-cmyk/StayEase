@@ -32,19 +32,19 @@ exports.getHomes = async (req, res) => {
       case "price_asc":
         sortOption = { price: 1 };
         break;
-      
+
       case "price_desc":
         sortOption = { price: -1 };
         break;
-      
+
       case "rating":
         sortOption = { averageRating: -1 };
         break;
-      
+
       case "reviews":
         sortOption = { reviewCount: -1 };
         break;
-      
+
       default:
         sortOption = { createdAt: -1 };
         break;
@@ -111,9 +111,7 @@ exports.getBookings = async (req, res) => {
       return {
         ...booking.toObject(),
         bookingStage,
-        canCancel:
-          booking.status === "pending" ||
-          (booking.status === "confirmed" && hoursLeft >= 24),
+        canCancel: booking.status === "confirmed" && hoursLeft >= 24,
       };
     });
 
@@ -242,6 +240,7 @@ exports.postBookHome = async (req, res) => {
       checkIn: checkInDate,
       checkOut: checkOutDate,
       totalPrice,
+      status: "confirmed",
     });
 
     res.status(201).json({

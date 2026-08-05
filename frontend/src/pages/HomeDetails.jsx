@@ -138,20 +138,18 @@ export default function HomeDetails() {
   };
 
   if (!home || loadingReview) {
-    return (
-      <HomeDetailsSkeleton/>
-    );
+    return <HomeDetailsSkeleton />;
   }
 
   const lat = home?.location?.coordinates?.[1];
   const lng = home?.location?.coordinates?.[0];
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="mb-3 text-4xl font-bold text-slate-900">
+          <h1 className="mb-3 text-4xl font-bold text-card-foreground">
             {home.homeName}
           </h1>
 
@@ -184,7 +182,7 @@ export default function HomeDetails() {
 
           <button
             onClick={handleFavourite}
-            className="absolute right-4 top-4 rounded-full bg-white p-3 shadow-lg transition hover:scale-110 hover:cursor-pointer"
+            className="absolute right-4 top-4 rounded-full bg-card p-3 shadow-lg transition hover:scale-110 hover:cursor-pointer"
           >
             <Heart
               className={`h-6 w-6 transition-all duration-300 ${
@@ -201,24 +199,22 @@ export default function HomeDetails() {
           {/* Left */}
           <div>
             {/* Description */}
-            <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <section className="rounded-2xl bg-card p-6 shadow-sm">
               <h2 className="mb-4 text-2xl font-bold">About this place</h2>
 
               <p className="leading-8 text-slate-600">{home.description}</p>
             </section>
 
             {/* Amenities */}
-            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+            <section className="mt-8 rounded-2xl bg-card p-6 shadow-sm">
               <h2 className="mb-5 text-2xl font-bold">Amenities</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl bg-slate-100 p-4">
-                  🏠 Entire Home
-                </div>
+                <div className="rounded-xl bg-muted p-4">🏠 Entire Home</div>
 
-                <div className="rounded-xl bg-slate-100 p-4">📶 Free WiFi</div>
+                <div className="rounded-xl bg-muted p-4">📶 Free WiFi</div>
 
-                <div className="rounded-xl bg-slate-100 p-4">
+                <div className="rounded-xl bg-muted p-4">
                   🚿 Private Bathroom
                 </div>
 
@@ -258,7 +254,7 @@ export default function HomeDetails() {
             </section>
 
             {/* Reviews */}
-            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+            <section className="mt-8 rounded-2xl bg-card p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-2xl font-bold">
                   Reviews ({reviews.length})

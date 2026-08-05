@@ -41,9 +41,7 @@ export default function HostDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <HostDashboardSkeleton/>
-    );
+    return <HostDashboardSkeleton />;
   }
 
   const recentBookings = stats.recentBookings;
@@ -99,7 +97,7 @@ export default function HostDashboard() {
             </div>
 
             <Link to="/host/add-home">
-              <Button className="bg-white text-blue-700 hover:bg-slate-100 hover:cursor-pointer">
+              <Button className="bg-white text-blue-700 hover:bg-slate-100 hover:cursor-pointer dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Listing
               </Button>
@@ -126,12 +124,12 @@ export default function HostDashboard() {
 
           <StatCard
             icon={<CalendarDays className="text-purple-600" />}
-            title="Pending Requests"
+            title="Pending Bookings"
             value={stats.pendingBookings}
             subtitle={
               stats.pendingBookings === 0
-                ? "No pending requests"
-                : "Waiting for approval"
+                ? "No pending bookings"
+                : "Awaiting final confirmation"
             }
           />
 
@@ -177,7 +175,7 @@ export default function HostDashboard() {
             <QuickCard
               to="/host/bookings"
               icon={<ClipboardList />}
-              title="Booking Requests"
+              title="Bookings"
             />
 
             <QuickCard
@@ -194,11 +192,11 @@ export default function HostDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Recent Booking Requests</h2>
+                <h2 className="text-xl font-bold">Recent Bookings</h2>
 
                 <Link
                   to="/host/bookings"
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
                 >
                   View All
                 </Link>
@@ -210,18 +208,18 @@ export default function HostDashboard() {
                     <CalendarDays className="mb-3 h-12 w-12 text-slate-400" />
 
                     <h3 className="font-semibold text-slate-700">
-                      No booking requests yet
+                      No bookings yet
                     </h3>
 
                     <p className="mt-2 text-sm text-slate-500">
-                      Booking requests from guests will appear here.
+                      Guest bookings will appear here.
                     </p>
                   </div>
                 ) : (
                   recentBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="rounded-xl border p-4 transition hover:bg-slate-50"
+                      className="rounded-xl border p-4 transition hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md"
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -262,7 +260,7 @@ export default function HostDashboard() {
 
                 <Link
                   to="/host/reviews"
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
                 >
                   View All
                 </Link>
@@ -283,7 +281,7 @@ export default function HostDashboard() {
                   {reviews.map((review) => (
                     <div
                       key={review._id}
-                      className="rounded-xl border p-4 hover:bg-slate-50 transition hover:shadow-md"
+                      className="rounded-xl border p-4 hover:bg-slate-50 transition hover:shadow-md dark:hover:bg-slate-800"
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -316,7 +314,9 @@ export default function HostDashboard() {
 
                         <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1">
                           <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                          <span className="font-semibold">{review.rating}</span>
+                          <span className="font-semibold dark:text-amber-400">
+                            {review.rating}
+                          </span>
                         </div>
                       </div>
                     </div>

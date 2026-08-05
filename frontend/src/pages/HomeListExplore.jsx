@@ -111,21 +111,31 @@ export default function HomesExplore() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search homes by name or location"
-            className="pl-11"
+            className="pl-11 dark:*:bg-slate-800 dark:text-white dark:border-slate-700"
           />
         </div>
 
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="w-56 hover:cursor-pointer">
+          <SelectTrigger className="w-56 hover:cursor-pointer dark:text-white dark:border-slate-700">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
 
-          <SelectContent className="p-1.5">
-            <SelectItem className="p-1.5" value="newest">Newest</SelectItem>
-            <SelectItem className="p-1.5" value="price_asc">Price: Low to High</SelectItem>
-            <SelectItem className="p-1.5" value="price_desc">Price: High to Low</SelectItem>
-            <SelectItem className="p-1.5" value="rating">Highest Rated</SelectItem>
-            <SelectItem className="p-1.5" value="reviews">Most Reviewed</SelectItem>
+          <SelectContent className="p-1.5 dark:bg-slate-800 dark:text-white dark:border-slate-700">
+            <SelectItem className="p-1.5" value="newest">
+              Newest
+            </SelectItem>
+            <SelectItem className="p-1.5" value="price_asc">
+              Price: Low to High
+            </SelectItem>
+            <SelectItem className="p-1.5" value="price_desc">
+              Price: High to Low
+            </SelectItem>
+            <SelectItem className="p-1.5" value="rating">
+              Highest Rated
+            </SelectItem>
+            <SelectItem className="p-1.5" value="reviews">
+              Most Reviewed
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -149,7 +159,7 @@ export default function HomesExplore() {
           {homes.map((home) => (
             <div
               key={home._id}
-              className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
             >
               {/* Image */}
               <div className="relative overflow-hidden">
@@ -180,10 +190,10 @@ export default function HomesExplore() {
               )}
 
               {/* Tabs */}
-              <div className="flex gap-2 bg-gray-100 p-2 font-semibold">
+              <div className="flex items-center justify-between border-b border-border px-4 py-2">
                 <button
                   onClick={() => toggleMap(home._id)}
-                  className="rounded px-3 py-1 font-semibold text-cyan-700 transition hover:bg-gradient-to-r hover:from-cyan-500 hover:to-blue-500 hover:text-white"
+                  className="rounded-md bg-blue-500 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600 hover:cursor-pointer"
                 >
                   {openedMap === home._id ? "Hide Map" : "Map"}
                 </button>
@@ -214,7 +224,7 @@ export default function HomesExplore() {
 
                 {/* Price */}
                 <div className="my-4">
-                  <span className="text-3xl font-extrabold text-emerald-600">
+                  <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                     ₹{home.price}
                   </span>
 

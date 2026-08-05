@@ -38,7 +38,8 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const active = "bg-blue-600 text-white shadow-lg dark:bg-blue-500";
-  const normal = "text-slate-700 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-100";
+  const normal =
+    "text-slate-700 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-slate-100";
 
   const handleLogout = () => {
     logout();
@@ -66,7 +67,7 @@ export default function Navbar() {
     { to: "/host/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/host/homes", label: "My Listings", icon: House },
     { to: "/host/add-home", label: "Add Listing", icon: Plus },
-    { to: "/host/bookings", label: "Booking Requests", icon: Calendar },
+    { to: "/host/bookings", label: "Bookings", icon: Calendar },
   ];
 
   const authItems = [

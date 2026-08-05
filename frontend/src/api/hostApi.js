@@ -19,14 +19,6 @@ export const getHostBookings = async (status, search) => {
   return res.data;
 };
 
-export const updateBookingRequest = async (bookingId, status) => {
-  const res = await API.patch(`/host/bookings/${bookingId}`, {
-    status,
-  });
-
-  return res.data;
-};
-
 export const getHostReviews = async () => {
   const res = await API.get(`/host/reviews`);
 

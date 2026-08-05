@@ -17,7 +17,7 @@ export default function HomeList({ homes }) {
         {homes.map((home) => (
           <div
             key={home._id}
-            className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+            className="group overflow-hidden rounded-3xl border border-border bg-card shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
           >
             {/* Image */}
             <div className="relative overflow-hidden">
@@ -31,7 +31,7 @@ export default function HomeList({ homes }) {
               />
 
               {/* Rating Badge */}
-              <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 shadow">
+              <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-card/95 px-3 py-1 shadow">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-semibold">
                   {home.averageRating?.toFixed(1) || "New"}
@@ -43,11 +43,11 @@ export default function HomeList({ homes }) {
             <div className="p-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="line-clamp-1 text-xl font-bold text-slate-900">
+                  <h2 className="line-clamp-1 text-xl font-bold text-card-foreground">
                     {home.homeName}
                   </h2>
 
-                  <p className="mt-1 line-clamp-1 text-sm text-slate-500">
+                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
                     📍 {home.address}
                   </p>
                 </div>
@@ -78,7 +78,7 @@ export default function HomeList({ homes }) {
               {/* Buttons */}
               <div className="mt-5 flex gap-3">
                 <Link to={`/homes/${home._id}`} className="flex-1">
-                  <button className="w-full rounded-xl border border-slate-300 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-100 hover:cursor-pointer">
+                  <button className="w-full rounded-xl border border-border py-2.5 font-semibold text-foreground transition hover:bg-muted/80 hover:cursor-pointer">
                     View Details
                   </button>
                 </Link>

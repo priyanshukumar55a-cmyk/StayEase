@@ -4,7 +4,7 @@ import { Search, Clock3, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { getHostBookings, updateBookingRequest } from "@/api/hostApi";
+import { getHostBookings } from "@/api/hostApi";
 import BookingsCards from "@/components/BookingsCards";
 import BookingCardSkeleton from "@/components/skeletons/BookingCardSkeleton";
 import { toast } from "sonner";
@@ -89,25 +89,6 @@ export default function HostBookings() {
         : (stats[filter.value] ?? 0),
   }));
 
-  const handleBookingStatus = async (bookingId, status) => {
-    setLoading(true);
-    try {
-      await updateBookingRequest(bookingId, status);
-
-      toast.success(
-        status === "confirmed"
-          ? "Booking accepted successfully."
-          : "Booking rejected successfully.",
-      );
-
-      fetchBookings(statusFilter, debouncedSearch);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update booking");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <main className="min-h-screen bg-slate-100">
       {/* Hero */}
@@ -122,17 +103,15 @@ export default function HostBookings() {
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white">
-                Booking Requests
-              </h1>
+              <h1 className="text-4xl font-bold text-white">Bookings</h1>
 
               <p className="mt-2 text-blue-100">
-                Review and manage booking requests from your guests.
+                Review your guest bookings and manage upcoming stays.
               </p>
             </div>
 
             <div className="rounded-2xl bg-white/15 px-6 py-4 text-center backdrop-blur">
-              <p className="text-sm text-blue-100">Pending Requests</p>
+              <p className="text-sm text-blue-100">Pending Bookings</p>
 
               <h2 className="text-4xl font-bold text-white">{stats.pending}</h2>
             </div>
@@ -223,11 +202,7 @@ export default function HostBookings() {
             ))}
           </div>
         ) : (
-          <BookingsCards
-            bookings={bookings}
-            statusFilter={statusFilter}
-            onStatusChange={handleBookingStatus}
-          />
+          <BookingsCards bookings={bookings} statusFilter={statusFilter} />
         )}
       </div>
     </main>

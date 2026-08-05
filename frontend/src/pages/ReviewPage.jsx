@@ -56,16 +56,18 @@ export default function ReviewPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-6 sm:py-10">
-      <div className="mx-auto w-full max-w-2xl rounded-3xl bg-white p-5 shadow-xl sm:p-8">
-        <h1 className="mb-2 text-3xl font-bold">Write a Review</h1>
+    <main className="min-h-screen bg-background px-4 py-6 sm:py-10">
+      <div className="mx-auto w-full max-w-2xl rounded-3xl bg-card p-5 shadow-xl sm:p-8">
+        <h1 className="mb-2 text-3xl font-bold text-card-foreground">
+          Write a Review
+        </h1>
 
         <p className="mb-8 text-slate-500">
           Tell other guests about your experience.
         </p>
 
         {home && (
-          <div className="mb-8 flex flex-col gap-4 rounded-2xl border bg-slate-50 p-4 sm:flex-row sm:items-center">
+          <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-border bg-muted p-4 sm:flex-row sm:items-center">
             <img
               src={home.photo}
               alt={home.homeName}
@@ -75,7 +77,7 @@ export default function ReviewPage() {
             <div className="flex-1">
               <h2 className="text-xl font-bold">{home.homeName}</h2>
 
-              <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 {home.averageRating?.toFixed(1) || "New"}
 
