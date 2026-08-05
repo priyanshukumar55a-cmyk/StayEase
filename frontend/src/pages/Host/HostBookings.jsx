@@ -140,10 +140,10 @@ export default function HostBookings() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-7xl sm:px-6 px-2 sm:py-8 py-3">
         {/* Stats */}
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid sm:gap-5 gap-3 md:grid-cols-3">
           <StatCard
             title="Pending"
             value={stats.pending}
@@ -175,7 +175,7 @@ export default function HostBookings() {
 
         {/* Search + Filters */}
 
-        <div className="mt-8 rounded-2xl bg-white p-5 shadow">
+        <div className="sm:mt-8 mt-4 rounded-2xl bg-white sm:p-5 p-2 shadow">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search */}
             <div className="relative w-full lg:max-w-md">

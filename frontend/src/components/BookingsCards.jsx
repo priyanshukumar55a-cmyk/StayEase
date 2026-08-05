@@ -17,7 +17,7 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
   const [rejectDialogBookingId, setRejectDialogBookingId] = useState(null);
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="sm:mt-8 mt-4 space-y-6">
       {bookings.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
@@ -39,7 +39,7 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
             key={booking._id}
             className="transition hover:-translate-y-1 hover:shadow-xl"
           >
-            <CardContent className="p-6">
+            <CardContent className="sm:p-6 p-2.5">
               <div className="flex flex-col gap-6 lg:flex-row">
                 {/* Property Image */}
 
@@ -98,7 +98,7 @@ const BookingsCards = ({ bookings, statusFilter, onStatusChange }) => {
 
                   {/* Dates */}
 
-                  <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  <div className="sm:mt-6 mt-3 grid gap-4 md:grid-cols-3">
                     <InfoBox
                       title="Check In"
                       value={new Date(booking.checkIn).toLocaleDateString()}

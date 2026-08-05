@@ -14,8 +14,8 @@ const options = {
   useWebWorker:true,
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
-// const API_URL ="http://localhost:3000";
+// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL ="http://localhost:3000";
 
 export default function AddHome({ editing = false, home = {} }) {
   const [preview, setPreview] = useState("");
