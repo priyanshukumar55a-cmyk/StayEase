@@ -112,7 +112,7 @@ export default function Bookings() {
         </h1>
 
         <p className="mb-10 text-center text-muted-foreground">
-          Track your bookings and upcoming stays
+          Track your booking requests and upcoming stays
         </p>
 
         <div className="space-y-8 justify-center">
@@ -182,8 +182,8 @@ export default function Bookings() {
                     {booking.status === "pending" && (
                       <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-200/20 dark:bg-yellow-200/10">
                         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                          ⏳ Your booking is being processed and will be
-                          confirmed automatically.
+                          ⏳ Your booking is under review. It will be confirmed
+                          automatically.
                         </p>
                       </div>
                     )}

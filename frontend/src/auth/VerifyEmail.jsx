@@ -4,8 +4,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
-// const API_URL = import.meta.env.VITE_API_URL;
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = "http://localhost:3000";
 
 export default function VerifyEmail() {
   const { checkAuth } = useAuth()
