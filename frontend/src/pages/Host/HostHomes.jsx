@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { Loader2, Star } from "lucide-react";
 import HomeCardSkeleton from "@/components/skeletons/HomeCardSkeleton";
 
-// const API_URL = import.meta.env.VITE_API_URL;
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = "http://localhost:3000";
 
 export default function HostHomes() {
   const [openedMap, setOpenedMap] = useState(null);

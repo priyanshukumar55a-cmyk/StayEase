@@ -70,7 +70,6 @@ export default function BookingRequest() {
         checkIn,
         checkOut,
       });
-      console.log(order);
 
       const options = {
         key: order.key,
@@ -84,8 +83,6 @@ export default function BookingRequest() {
 
         handler: async function (response) {
           try {
-            console.log(response);
-
             await verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,

@@ -175,8 +175,8 @@ export default function Bookings() {
                         </p>
                       </div>
                       <p className="text-md text-slate-500">
-                        Hosted by: {booking.host.firstName}{" "}
-                        {booking.host.lastName}
+                        Hosted by: {booking.host?.firstName}{" "}
+                        {booking.host?.lastName}
                       </p>
                     </div>
                     <span
