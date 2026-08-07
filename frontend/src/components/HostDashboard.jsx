@@ -327,7 +327,7 @@ export default function HostDashboard() {
           </Card>
           {/* Performance */}
 
-          <Card>
+          {/* <Card>
             <CardContent className="p-6">
               <h2 className="mb-5 text-xl font-bold">Performance</h2>
 
@@ -341,7 +341,7 @@ export default function HostDashboard() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>

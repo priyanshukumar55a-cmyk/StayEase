@@ -9,11 +9,11 @@ const NotFound = () => {
       <div className="max-w-xl text-center">
         <h1 className="text-8xl font-extrabold text-blue-600">404</h1>
 
-        <h2 className="mt-4 text-3xl font-bold text-slate-800">
+        <h2 className="mt-4 text-3xl font-bold dark:text-primary-foreground ">
           Oops! Page Not Found
         </h2>
 
-        <p className="mt-3 text-slate-600">
+        <p className="mt-3 dark:text-muted">
           The page you're looking for doesn't exist, may have been moved, or the
           URL might be incorrect.
         </p>

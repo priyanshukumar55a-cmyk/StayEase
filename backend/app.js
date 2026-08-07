@@ -51,6 +51,8 @@ const hostRouter = require("./routes/hostRouter");
 const rootDir = require("./utils/pathUtil");
 const authRouter = require("./routes/authRouter");
 const paymentRouter = require("./routes/paymentRouter");
+const { verifyPayment } = require("./controllers/paymentController");
+const { ensureAuth } = require("./middleware/auth");
 
 app.use((req, res, next) => {
   next();
@@ -62,6 +64,7 @@ app.use(express.static(path.join(rootDir, "public")));
 
 app.use("/auth", authRouter);
 app.use("/", storeRouter);
+app.post("/api/verify-payment", ensureAuth, verifyPayment);
 app.use("/api/payment", paymentRouter);
 app.use("/host", hostRouter);
 

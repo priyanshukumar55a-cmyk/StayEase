@@ -10,6 +10,6 @@ const { ensureAuth } = require("../middleware/auth");
 
 paymentRouter.post("/create-order", ensureAuth, createOrder);
 
-paymentRouter.post("/verify", ensureAuth, verifyPayment);
+paymentRouter.post("/verify-payment", ensureAuth, verifyPayment);
 
 module.exports = paymentRouter;

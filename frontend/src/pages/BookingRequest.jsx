@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
-import { bookHome, getHomeDetails } from "@/api/homeApi";
-import { formatDate, formatDateTime } from "@/components/dayFormat";
+import { getHomeDetails } from "@/api/homeApi";
+import { formatDate } from "@/components/dayFormat";
 import BookingRequestSkeleton from "@/components/skeletons/BookingRequestSkeleton";
+import { createOrder, verifyPayment } from "@/api/paymentApi";
+import { loadRazorpay } from "@/utils/loadRazorpay";
 
 export default function BookingRequest() {
   const { homeId } = useParams();
@@ -43,7 +45,7 @@ export default function BookingRequest() {
   const calculateTotal = (price, nights) => {
     if (!checkIn || !checkOut) return 0;
 
-    return price*nights;
+    return price * nights;
   };
 
   const handleBooking = async (e) => {
@@ -53,21 +55,79 @@ export default function BookingRequest() {
       return toast.error("Check-out date must be after check-in date");
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      await bookHome(homeId, {
+    try {
+      const loaded = await loadRazorpay();
+
+      if (!loaded) {
+        toast.error("Unable to load payment gateway.");
+        return;
+      }
+
+      const order = await createOrder({
+        homeId,
         checkIn,
         checkOut,
       });
+      console.log(order);
 
-      toast.success("Booking confirmed. Enjoy your stay!");
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
 
-      setTimeout(() => {
-        navigate("/bookings", { replace: true });
-      }, 1000);
+        name: "StayEase",
+
+        description: "Home Booking",
+
+        handler: async function (response) {
+          try {
+            console.log(response);
+
+            await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              homeId,
+              checkIn,
+              checkOut,
+            });
+
+            toast.success("Booking confirmed!")
+            navigate("/bookings")
+          } catch (error) {
+            console.log(error);
+            toast.error("Payment verification failed");
+          }
+        },
+
+        prefill: {
+          name: "Guest",
+          email: "",
+        },
+
+        theme: {
+          color: "#2563eb",
+        },
+
+        modal: {
+          ondismiss: () => {
+            toast.info("Payment cancelled.");
+          },
+        },
+      };
+      const paymentObject = new window.Razorpay(options);
+
+      paymentObject.on("payment.failed", function (response) {
+        console.log(response.error);
+        toast.error("Payment Failed");
+      });
+
+      paymentObject.open();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to book home");
+      toast.error(err.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
