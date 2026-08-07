@@ -98,19 +98,19 @@ exports.getBookings = async (req, res) => {
       const hoursLeft =
         (new Date(booking.checkIn) - new Date()) / (1000 * 60 * 60);
 
-      let bookingStage = null;
-
-      if (booking.status === "confirmed") {
-        const now = new Date();
-
-        if (now < booking.checkIn) bookingStage = "upcoming";
-        else if (now <= booking.checkOut) bookingStage = "ongoing";
-        else bookingStage = "completed";
-      }
+      const now = new Date();
+      const computedBookingStage =
+        booking.status === "confirmed"
+          ? now < booking.checkIn
+            ? "upcoming"
+            : now <= booking.checkOut
+              ? "ongoing"
+              : "completed"
+          : null;
 
       return {
         ...booking.toObject(),
-        bookingStage,
+        bookingStage: computedBookingStage || booking.bookingStage,
         canCancel: booking.status === "confirmed" && hoursLeft >= 24,
       };
     });
@@ -166,86 +166,6 @@ exports.getHomeDetails = async (req, res) => {
         ...home.toObject(),
         isFavourite,
       },
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-};
-
-exports.postBookHome = async (req, res) => {
-  try {
-    const { checkIn, checkOut } = req.body;
-
-    // Normalize and validate incoming dates to avoid invalid Date cast errors
-    const checkInDate = normalizeBookingDate(checkIn);
-    const checkOutDate = normalizeBookingDate(checkOut);
-
-    if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid check-in or check-out date",
-      });
-    }
-
-    if (checkInDate >= checkOutDate) {
-      return res.status(400).json({
-        success: false,
-        message: "Check-out date must be after check-in date",
-      });
-    }
-
-    const home = await Home.findById(req.params.homeId);
-
-    if (!home) {
-      return res.status(404).json({
-        success: false,
-        message: "Home not found",
-      });
-    }
-
-    const existingBooking = await Booking.find({
-      home: home._id,
-      status: { $ne: "cancelled" },
-
-      $or: [
-        {
-          checkIn: { $lt: checkOutDate },
-          checkOut: { $gt: checkInDate },
-        },
-      ],
-    });
-
-    if (existingBooking.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Home is already booked for the selected dates",
-      });
-    }
-
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const days = Math.max(
-      1,
-      Math.ceil((checkOutDate - checkInDate) / msPerDay),
-    );
-
-    const totalPrice = days * home.price;
-
-    const booking = await Booking.create({
-      guest: req.user._id,
-      host: home.host,
-      home: home._id,
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      totalPrice,
-      status: "confirmed",
-    });
-
-    res.status(201).json({
-      success: true,
-      booking,
     });
   } catch (err) {
     res.status(500).json({

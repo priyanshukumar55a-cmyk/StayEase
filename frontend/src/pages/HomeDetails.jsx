@@ -199,15 +199,15 @@ export default function HomeDetails() {
           {/* Left */}
           <div>
             {/* Description */}
-            <section className="rounded-2xl bg-card p-6 shadow-sm">
+            <section className="rounded-2xl bg-card p-5 sm:p-6 shadow-sm">
               <h2 className="mb-4 text-2xl font-bold">About this place</h2>
 
               <p className="leading-8 text-slate-600">{home.description}</p>
             </section>
 
             {/* Amenities */}
-            <section className="mt-8 rounded-2xl bg-card p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl font-bold">Amenities</h2>
+            <section className="mt-8 rounded-2xl bg-card p-3 sm:p-6 shadow-sm">
+              <h2 className="mb-5 ml-2 text-2xl font-bold mt-2 sm:mt-0">Amenities</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-xl bg-muted p-4">🏠 Entire Home</div>
@@ -225,8 +225,8 @@ export default function HomeDetails() {
             </section>
 
             {/* Map */}
-            <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-5 text-2xl font-bold">Location</h2>
+            <section className="mt-8 rounded-2xl bg-white p-3 sm:p-6 shadow-sm">
+              <h2 className="mb-5 text-2xl font-bold ml-2">Location</h2>
 
               {lat && lng ? (
                 <div className="overflow-hidden rounded-2xl">
@@ -254,9 +254,9 @@ export default function HomeDetails() {
             </section>
 
             {/* Reviews */}
-            <section className="mt-8 rounded-2xl bg-card p-6 shadow-sm">
+            <section className="mt-8 rounded-2xl bg-card p-3 sm:p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-2xl font-bold ml-2">
                   Reviews ({reviews.length})
                 </h2>
 
@@ -373,7 +373,7 @@ export default function HomeDetails() {
 
           {/* Right Sidebar */}
           <div>
-            <div className="sticky top-24 rounded-3xl bg-white p-6 shadow-xl">
+            <div className="sticky top-24 rounded-3xl bg-white px-3 py-4 sm:p-6 shadow-xl">
               <div className="mb-5">
                 <span className="text-4xl font-extrabold text-emerald-600">
                   ₹{home.price}
@@ -389,7 +389,7 @@ export default function HomeDetails() {
               <button
                 disabled={loading}
                 onClick={handleFavourite}
-                className={`w-full rounded-xl py-3 font-semibold transition hover:cursor-pointer ${
+                className={`w-full rounded-xl py-3 font-semibold transition hover:cursor-pointer dark:hover:text-black/80 ${
                   isFavourite
                     ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
                     : "border hover:bg-slate-100"

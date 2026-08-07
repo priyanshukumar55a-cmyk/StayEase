@@ -95,7 +95,7 @@ export default function BookingRequest() {
               checkOut,
             });
 
-            toast.success("Booking confirmed!")
+            toast.success("Booking confirmed! Check your email for details.");
             navigate("/bookings")
           } catch (error) {
             console.log(error);
@@ -137,11 +137,11 @@ export default function BookingRequest() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 bg-background sm:py-20">
-      <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-xl">
+    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-3 py-10 bg-background sm:py-20">
+      <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-3 sm:p-8 shadow-xl">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-            <CalendarDays className="h-7 w-7 text-blue-600" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 mt-2">
+            <CalendarDays className="h-7 w-7 text-blue-600 " />
           </div>
 
           <h1 className="text-3xl font-bold text-card-foreground">
@@ -153,14 +153,14 @@ export default function BookingRequest() {
           </p>
         </div>
         {home && (
-          <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-border bg-muted p-4 sm:flex-row sm:items-center">
+          <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-border bg-muted p-2 sm:flex-row sm:items-center">
             <img
               src={home.photo || "/default-home.jpg"}
               alt={home.homeName}
-              className="h-48 w-full rounded-xl object-cover sm:h-28 sm:w-36"
+              className="h-48 w-full rounded-xl object-cover sm:h-28 sm:w-36 p-0"
             />
 
-            <div className="flex-1">
+            <div className="flex-1 ml-2">
               <h2 className="text-xl font-bold">{home.homeName}</h2>
 
               <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">

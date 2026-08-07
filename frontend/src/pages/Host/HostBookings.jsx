@@ -26,10 +26,6 @@ const FILTERS = [
     value: "cancelled",
     label: "Cancelled",
   },
-  {
-    value: "declined",
-    label: "Declined",
-  },
 ];
 
 export default function HostBookings() {
@@ -60,7 +56,6 @@ export default function HostBookings() {
     pending: 0,
     confirmed: 0,
     cancelled: 0,
-    declined: 0,
   });
 
   const fetchBookings = useCallback(async (status, search) => {
@@ -82,10 +77,7 @@ export default function HostBookings() {
     ...filter,
     count:
       filter.value === "all"
-        ? stats["pending"] +
-          stats["confirmed"] +
-          stats["cancelled"] +
-          stats["declined"]
+        ? stats["pending"] + stats["confirmed"] + stats["cancelled"]
         : (stats[filter.value] ?? 0),
   }));
 
@@ -140,13 +132,6 @@ export default function HostBookings() {
           <StatCard
             title="Cancelled"
             value={stats.cancelled}
-            icon={<XCircle className="text-red-600" />}
-            bg="bg-red-50"
-          />
-
-          <StatCard
-            title="Declined"
-            value={stats.declined}
             icon={<XCircle className="text-red-600" />}
             bg="bg-red-50"
           />

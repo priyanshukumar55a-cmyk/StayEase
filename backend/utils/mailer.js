@@ -3,8 +3,7 @@ const { Resend } = require("resend");
 require("dotenv").config();
 
 const senderName = process.env.EMAIL_FROM_NAME || "StayEase";
-const senderAddress =
-  process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL
+const senderAddress = process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL;
 const replyToAddress = process.env.REPLY_TO_EMAIL || senderAddress;
 
 let transporter = null;
@@ -47,11 +46,9 @@ async function sendVerificationEmail({
   message = "Welcome to StayEase! Please confirm your email address to activate your account and continue exploring homes.",
   buttonText = "Verify Email",
 }) {
-  const text = [
-    "Welcome to StayEase!",
-    message,
-    `Link: ${verifyUrl}`,
-  ].join("\n\n");
+  const text = ["Welcome to StayEase!", message, `Link: ${verifyUrl}`].join(
+    "\n\n",
+  );
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; color: #222;">
@@ -112,8 +109,167 @@ async function sendVerificationEmail({
   });
 }
 
+async function sendBookingConfirmationEmail({
+  to,
+  guestName,
+  bookingId,
+  paymentId,
+  homeName,
+  homeImage,
+  address,
+  hostName,
+  checkIn,
+  checkOut,
+  totalPrice,
+  nights,
+}) {
+  const subject = "🏡 Your StayEase Booking is Confirmed!";
+
+  const text = `
+  Hi ${guestName},
+  
+  Your booking has been confirmed.
+
+  Property: ${homeName}
+  Address: ${address}
+
+  checkIn: ${checkIn}
+  checkOut: ${checkOut}
+
+  Total Paid: ₹${totalPrice}
+
+  Thank you for booking with StayEase.
+  `;
+
+  const html = `
+  <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px">
+
+  <h2 style="color:#2563eb">🏡 StayEase</h2>
+
+  <div style="text-align:center;margin-bottom:20px;">
+    <img
+        src="${homeImage}"
+        alt="${homeName}"
+        style="
+            width:100%;
+            max-width:600px;
+            border-radius:12px;
+            object-fit:cover;
+        "
+    />
+</div>
+
+  <h3>Your booking is confirmed 🎉</h3>
+
+  <p>Hello <b>${guestName}</b>,</p>
+
+  <p>Your payment was successful and your booking has been confirmed.</p>
+
+  <table
+    style="
+    width:100%;
+    border-collapse:collapse;
+    background:#f8fafc;
+    border-radius:10px;
+    overflow:hidden;
+    ">
+
+    <tr>
+    <td style="padding:12px;"><b>🏠 Property</b></td>
+    <td>${homeName}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>📍 Address</b></td>
+    <td>${address}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>👤 Host</b></td>
+    <td>${hostName}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>🛏 Nights</b></td>
+    <td>${nights}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>📅 Check-in</b></td>
+    <td>${checkIn}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>📅 Check-out</b></td>
+    <td>${checkOut}</td>
+    </tr>
+
+    <tr>
+    <td style="padding:12px;"><b>💰 Total Paid</b></td>
+    <td>₹${totalPrice}</td>
+    </tr>
+
+    </table>
+
+    <div style="margin-top:20px;
+    padding:16px;
+    background:#eff6ff;
+    border-radius:10px;
+    ">
+
+    <h3>Your Booking Details</h3>
+
+    <p><strong>Booking ID:</strong> ${bookingId}</p>
+
+    <p><strong>Payment ID:</strong> ${paymentId}</p>
+
+    </div>
+
+    <div style="text-align:center;margin-top:30px;margin-bottom:30px">
+    <a
+    href="https://stay-ease-app-flax.vercel.app/bookings"
+    style="background:#2563eb;color:white;
+    padding:14px 26px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+    ">
+    View My Bookings
+    </a>
+    </div>
+
+    <hr>
+
+    <p style="font-size:13px;color:#666">
+    Need help?
+    
+    Reply to this email or contact our support team.</p>
+    
+    <p style="margin-top:20px">
+    Thank you for choosing <b>StayEase ❤️</b>
+    </p>
+
+  </div>
+  `;
+
+  const headers = {
+    "X-Mailer": "StayEase",
+  };
+
+  return transporter.sendMail({
+    from: `${senderName} <${senderAddress}>`,
+    replyTo: replyToAddress,
+    to,
+    subject,
+    text,
+    html,
+    headers,
+  });
+}
+
 module.exports = {
   sendVerificationEmail,
+  sendBookingConfirmationEmail,
   senderAddress,
   senderName,
 };

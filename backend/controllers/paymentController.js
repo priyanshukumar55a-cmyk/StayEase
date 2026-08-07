@@ -2,7 +2,9 @@ const crypto = require("crypto");
 const razorpay = require("../utils/razorpay");
 
 const Home = require("../model/home");
+const User = require("../model/user");
 const Booking = require("../model/booking");
+const { sendBookingConfirmationEmail } = require("../utils/mailer");
 
 const createOrder = async (req, res) => {
   try {
@@ -36,7 +38,7 @@ const createOrder = async (req, res) => {
 
     const existingBooking = await Booking.findOne({
       home: homeId,
-      bookingStatus: "confirmed",
+      paymentStatus: "paid",
       $or: [
         {
           checkIn: { $lt: checkOutDate },
@@ -83,7 +85,7 @@ const createOrder = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to create order.",
+      message: error.message,
     });
   }
 };
@@ -144,6 +146,13 @@ const verifyPayment = async (req, res) => {
     );
 
     const totalPrice = totalNights * home.price;
+    const now = new Date();
+    const bookingStage =
+      now < checkInDate
+        ? "upcoming"
+        : now <= checkOutDate
+          ? "ongoing"
+          : "completed";
 
     const booking = await Booking.create({
       guest: req.user.id,
@@ -154,8 +163,11 @@ const verifyPayment = async (req, res) => {
       checkOut: checkOutDate,
 
       totalPrice,
+      status: "confirmed",
+      bookingStage,
 
       paymentStatus: "paid",
+      paidAt: new Date(),
 
       payment: {
         orderId: razorpay_order_id,
@@ -167,6 +179,29 @@ const verifyPayment = async (req, res) => {
       },
     });
 
+    const guest = req.user;
+    const host = await User.findById(home.host).select(
+      "firstName lastName email",
+    );
+    try {
+      await sendBookingConfirmationEmail({
+        to: guest.email,
+        guestName: `${guest.firstName} ${guest.lastName}`,
+        bookingId: booking._id,
+        paymentId: razorpay_payment_id,
+        homeName: home.homeName,
+        homeImage: home.photo,
+        address: home.address,
+        hostName: `${host.firstName} ${host.lastName}`,
+        checkIn: checkInDate.toDateString(),
+        checkOut: checkOutDate.toDateString(),
+        totalPrice,
+        nights: totalNights,
+      });
+    } catch (error) {
+      console.error("Booking email failed:", error);
+    }
+
     return res.status(201).json({
       success: true,
       message: "Payment verified successfully.",
@@ -177,7 +212,7 @@ const verifyPayment = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Payment verification failed.",
+      message: error.message,
     });
   }
 };

@@ -12,11 +12,6 @@ storeRouter.get("/homes", storeController.getHomes);
 storeRouter.get("/homes/:homeId", optionalAuth, storeController.getHomeDetails);
 
 storeRouter.get("/bookings", ensureAuth, storeController.getBookings);
-storeRouter.post(
-  "/homes/:homeId/book",
-  ensureAuth,
-  storeController.postBookHome,
-);
 
 storeRouter.get("/favourites", ensureAuth, storeController.getFavouriteList);
 storeRouter.post(
@@ -24,6 +19,7 @@ storeRouter.post(
   ensureAuth,
   storeController.postAddToFavourite,
 );
+
 storeRouter.post(
   "/favourite/delete/:homeId",
   ensureAuth,

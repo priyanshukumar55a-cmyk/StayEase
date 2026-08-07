@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  // baseURL: "http://localhost:3000",
+  // baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://localhost:3000",
   withCredentials: true,
 });
 
@@ -57,16 +57,6 @@ export const addHomeToFavourites = async (homeId) => {
   try {
     const res = await API.post(`/favourites/${homeId}`);
     return res.data?.message;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
-
-export const bookHome = async (homeId, bookingData) => {
-  try {
-    const res = await API.post(`/homes/${homeId}/book`, bookingData);
-    return res.data;
   } catch (err) {
     console.error(err);
     throw err;

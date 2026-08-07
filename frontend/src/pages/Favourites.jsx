@@ -91,7 +91,7 @@ export default function Favourites() {
                 </p>
 
                 <p className="mb-2 text-sm font-semibold text-amber-500">
-                  ⭐ {home.rating} / 5
+                  ⭐ {home.averageRating} / 5
                 </p>
 
                 <p className="mb-4 text-lg font-bold text-emerald-600">

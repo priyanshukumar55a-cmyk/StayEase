@@ -51,7 +51,6 @@ export default function HostDashboard() {
     pending: "bg-yellow-100 text-yellow-700",
     confirmed: "bg-green-100 text-green-700",
     cancelled: "bg-red-100 text-red-700",
-    declined: "bg-red-100 text-red-700 border border-red-200",
   };
 
   if (stats.totalListings === 0) {
@@ -106,10 +105,10 @@ export default function HostDashboard() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-2 py-3 sm:px-6 sm:py-8">
         {/* Stats */}
 
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 xl:grid-cols-3">
           <StatCard
             icon={<House className="text-blue-600" />}
             title="Total Listings"
@@ -161,9 +160,9 @@ export default function HostDashboard() {
         {/* Quick Actions */}
 
         <div className="mt-10">
-          <h2 className="mb-5 text-2xl font-bold">Quick Actions</h2>
+          <h2 className="mb-5 ml-2 text-2xl font-bold">Quick Actions</h2>
 
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
             <QuickCard
               to="/host/add-home"
               icon={<Plus />}
@@ -190,13 +189,15 @@ export default function HostDashboard() {
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="sm:p-6">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Recent Bookings</h2>
+                <h2 className="text-xl font-bold mt-2 ml-2 sm:mt-0">
+                  Recent Bookings
+                </h2>
 
                 <Link
                   to="/host/bookings"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-blue-600 hover:underline dark:text-blue-400 mr-2"
                 >
                   View All
                 </Link>
@@ -219,7 +220,7 @@ export default function HostDashboard() {
                   recentBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="rounded-xl border p-4 transition hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md"
+                      className="rounded-xl border p-3 sm:p-4 transition hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md"
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -254,13 +255,15 @@ export default function HostDashboard() {
           {/* Performance */}
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="sm:p-6">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Recent Reviews</h2>
+                <h2 className="text-xl font-bold mt-2 ml-2 sm:mt-0">
+                  Recent Reviews
+                </h2>
 
                 <Link
                   to="/host/reviews"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-blue-600 hover:underline dark:text-blue-400 mr-2"
                 >
                   View All
                 </Link>

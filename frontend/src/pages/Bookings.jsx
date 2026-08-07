@@ -36,11 +36,6 @@ const statusStyles = {
       "bg-blue-100 text-blue-700 dark:bg-blue-200/15 dark:text-blue-300",
     label: "Ongoing",
   },
-  declined: {
-    icon: <XCircle className="h-4 w-4" />,
-    className: "bg-red-100 text-red-700 dark:bg-red-200/15 dark:text-red-300",
-    label: "Declined",
-  },
   cancelled: {
     icon: <Ban className="h-4 w-4" />,
     className:
@@ -76,7 +71,7 @@ export default function Bookings() {
 
   if (bookings.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center text-center">
         <h1 className="mb-4 text-5xl font-extrabold text-blue-600">
           My Bookings
         </h1>
@@ -94,7 +89,18 @@ export default function Bookings() {
 
       const updatedBooking = await cancelBooking(bookingId);
 
-      setBookings(updatedBooking.booking);
+      setBookings((prevBookings) =>
+        prevBookings.map((item) =>
+          item._id === bookingId
+            ? {
+                ...item,
+                ...updatedBooking.booking,
+                bookingStage: item.bookingStage,
+                canCancel: false,
+              }
+            : item,
+        ),
+      );
 
       toast.success("Booking cancelled");
     } catch (error) {
@@ -105,7 +111,7 @@ export default function Bookings() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-7 sm:py-10">
+    <main className="min-h-screen bg-background py-7 sm:py-10">
       <div className="mx-auto max-w-7xl px-4 py-10">
         <h1 className="mb-2 text-center text-5xl font-extrabold text-blue-600">
           My Bookings
@@ -117,6 +123,7 @@ export default function Bookings() {
 
         <div className="space-y-8 justify-center">
           {bookings.map((booking) => {
+            const normalizedStatus = booking.status || "confirmed";
             const currentStatus =
               booking.bookingStage === "completed"
                 ? {
@@ -127,7 +134,7 @@ export default function Bookings() {
                   }
                 : booking.bookingStage === "ongoing"
                   ? statusStyles.ongoing
-                  : statusStyles[booking.status];
+                  : statusStyles[normalizedStatus] || statusStyles.confirmed;
 
             return (
               <div
@@ -146,14 +153,14 @@ export default function Bookings() {
                     />
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-3 sm:p-6">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                       <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
                         Booking #{booking._id.slice(-8).toUpperCase()}
                       </span>
 
                       <span className="text-sm text-muted-foreground">
-                        Requested on {formatDateTime(booking.createdAt)}
+                        Booked on {formatDateTime(booking.createdAt)}
                       </span>
                     </div>
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -179,7 +186,7 @@ export default function Bookings() {
                       {currentStatus.label}
                     </span>
 
-                    {booking.status === "pending" && (
+                    {normalizedStatus === "pending" && (
                       <div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-200/20 dark:bg-yellow-200/10">
                         <p className="text-sm text-yellow-700 dark:text-yellow-300">
                           ⏳ Your booking is under review. It will be confirmed
@@ -188,16 +195,7 @@ export default function Bookings() {
                       </div>
                     )}
 
-                    {booking.status === "declined" && (
-                      <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-200/20 dark:bg-red-200/10">
-                        <p className="text-sm text-red-700 dark:text-red-300">
-                          ❌ Unfortunately the host declined your booking
-                          request.
-                        </p>
-                      </div>
-                    )}
-
-                    {booking.status === "cancelled" && (
+                    {normalizedStatus === "cancelled" && (
                       <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-200/20 dark:bg-red-200/10">
                         <p className="text-sm text-red-700 dark:text-red-300">
                           This booking was cancelled by you.
@@ -283,7 +281,7 @@ export default function Bookings() {
                             <AlertDialogTrigger
                               onClick={() => setSelectedBookingId(booking._id)}
                             >
-                              {booking.status !== "cancelled" && (
+                              {normalizedStatus !== "cancelled" && (
                                 <button
                                   disabled={cancellingId === booking._id}
                                   className="rounded-xl bg-red-500 px-5 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
@@ -343,17 +341,10 @@ export default function Bookings() {
                         )
                       )}
 
-                      {booking.status === "cancelled" && (
+                      {normalizedStatus === "cancelled" && (
                         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-200/20 dark:bg-red-200/10">
                           <p className="text-sm font-medium text-red-600 dark:text-red-300">
                             Cancelled on {formatDateTime(booking.cancelledAt)}
-                          </p>
-                        </div>
-                      )}
-                      {booking.status === "declined" && booking.declinedAt && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-200/20 dark:bg-red-200/10">
-                          <p className="text-sm font-medium text-red-600 dark:text-red-300">
-                            Declined on {formatDateTime(booking.declinedAt)}
                           </p>
                         </div>
                       )}
