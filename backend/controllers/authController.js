@@ -151,7 +151,7 @@ exports.postSignup = [
       const existingUser = await User.findOne({ email });
 
       if (existingUser) {
-        return res.status(422).json({
+        return res.status(409).json({
           success: false,
           message: "Email already exists",
         });
@@ -222,7 +222,7 @@ exports.postLogin = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(422).json({
+    return res.status(401).json({
       success: false,
       message: "Invalid email or password.",
     });
@@ -237,7 +237,7 @@ exports.postLogin = async (req, res, next) => {
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    return res.status(422).json({
+    return res.status(401).json({
       success: false,
       message: "Invalid email or password.",
     });
